@@ -1,0 +1,535 @@
+{
+  "name": "Indeed - Reminder Engine",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "minutes",
+              "minutesInterval": 15
+            }
+          ]
+        }
+      },
+      "id": "schedule-reminder-engine",
+      "name": "Schedule - Reminder Engine",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        180,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "resource": "table",
+        "operation": "create",
+        "tableName": "Indeed Interview Slots",
+        "columns": {
+          "column": [
+            {
+              "name": "slot_datetime",
+              "type": "date"
+            },
+            {
+              "name": "is_booked",
+              "type": "boolean"
+            },
+            {
+              "name": "job_title",
+              "type": "string"
+            },
+            {
+              "name": "candidate_name",
+              "type": "string"
+            },
+            {
+              "name": "candidate_email",
+              "type": "string"
+            },
+            {
+              "name": "booking_date",
+              "type": "date"
+            },
+            {
+              "name": "calendar_event_id",
+              "type": "string"
+            },
+            {
+              "name": "rsvp_accepted",
+              "type": "boolean"
+            },
+            {
+              "name": "nudge_sent",
+              "type": "boolean"
+            },
+            {
+              "name": "follow_up_1_sent",
+              "type": "boolean"
+            },
+            {
+              "name": "follow_up_2_sent",
+              "type": "boolean"
+            },
+            {
+              "name": "follow_up_3_sent",
+              "type": "boolean"
+            },
+            {
+              "name": "reminder_day_sent",
+              "type": "boolean"
+            },
+            {
+              "name": "reminder_4hr_sent",
+              "type": "boolean"
+            },
+            {
+              "name": "reminder_1hr_sent",
+              "type": "boolean"
+            }
+          ]
+        },
+        "options": {
+          "createIfNotExists": true
+        }
+      },
+      "id": "data-table-ensure-interview-slots",
+      "name": "Data Table - Ensure Interview Slots",
+      "type": "n8n-nodes-base.dataTable",
+      "typeVersion": 1.1,
+      "position": [
+        460,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "get",
+        "dataTableId": {
+          "__rl": true,
+          "value": "Indeed Interview Slots",
+          "mode": "name",
+          "cachedResultName": "Indeed Interview Slots"
+        },
+        "matchType": "allConditions",
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "is_booked",
+              "condition": "eq",
+              "keyValue": true
+            },
+            {
+              "keyName": "reminder_day_sent",
+              "condition": "neq",
+              "keyValue": true
+            },
+            {
+              "keyName": "slot_datetime",
+              "condition": "gt",
+              "keyValue": "={{ $now.plus({ minutes: 1380 }).toISO() }}"
+            },
+            {
+              "keyName": "slot_datetime",
+              "condition": "lt",
+              "keyValue": "={{ $now.plus({ minutes: 1440 }).toISO() }}"
+            }
+          ]
+        },
+        "returnAll": true,
+        "limit": 10
+      },
+      "id": "data-table-find-day-reminders",
+      "name": "Data Table - Find Day Reminders",
+      "type": "n8n-nodes-base.dataTable",
+      "typeVersion": 1.1,
+      "position": [
+        760,
+        40
+      ]
+    },
+    {
+      "parameters": {
+        "resource": "message",
+        "operation": "send",
+        "sendTo": "={{ $json.candidate_email }}",
+        "subject": "={{ 'Reminder: Your Interview Tomorrow - ' + $json.job_title }}",
+        "emailType": "html",
+        "message": "={{ '<div style=\"font-family:Arial,sans-serif;max-width:600px;margin:0 auto;padding:32px 24px;\"><p style=\"font-size:16px;color:#333;\">Hi <strong>' + $json.candidate_name + '</strong>,</p><p style=\"font-size:15px;color:#444;line-height:1.7;\">This is a reminder that your interview for the <strong>' + $json.job_title + '</strong> position is scheduled for <strong>tomorrow</strong>.</p><div style=\"background:#f5f7ff;border-left:4px solid #1a2744;padding:16px 20px;border-radius:4px;margin:20px 0;\"><p style=\"margin:0;color:#1a2744;\"><strong>' + DateTime.fromISO($json.slot_datetime).setZone('America/Vancouver').toFormat('cccc, LLLL d, yyyy') + '</strong><br><strong>' + DateTime.fromISO($json.slot_datetime).setZone('America/Vancouver').toFormat('h:mm a') + ' Pacific Time</strong><br>12899 80 Ave #203, Surrey, BC V3W 0E6</p></div><p style=\"font-size:15px;color:#444;\">Questions? Call <strong>778-582-4000</strong> or reply to this email. See you tomorrow!</p><br><p style=\"color:#666;font-size:14px;\">Best regards,<br><strong>Karan Verma</strong><br>Nexa Marketing Inc.</p></div>' }}",
+        "options": {
+          "senderName": "Karan Verma",
+          "appendAttribution": false
+        }
+      },
+      "id": "gmail-send-day-reminder",
+      "name": "Gmail - Send Day Reminder",
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [
+        1040,
+        40
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "dataTableId": {
+          "__rl": true,
+          "value": "Indeed Interview Slots",
+          "mode": "name",
+          "cachedResultName": "Indeed Interview Slots"
+        },
+        "matchType": "allConditions",
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "id",
+              "condition": "eq",
+              "keyValue": "={{ $('Data Table - Find Day Reminders').item.json.id }}"
+            }
+          ]
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "reminder_day_sent": true
+          },
+          "matchingColumns": [],
+          "schema": []
+        },
+        "options": {}
+      },
+      "id": "data-table-mark-day-reminder-sent",
+      "name": "Data Table - Mark Day Reminder Sent",
+      "type": "n8n-nodes-base.dataTable",
+      "typeVersion": 1.1,
+      "position": [
+        1320,
+        40
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "get",
+        "dataTableId": {
+          "__rl": true,
+          "value": "Indeed Interview Slots",
+          "mode": "name",
+          "cachedResultName": "Indeed Interview Slots"
+        },
+        "matchType": "allConditions",
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "is_booked",
+              "condition": "eq",
+              "keyValue": true
+            },
+            {
+              "keyName": "reminder_4hr_sent",
+              "condition": "neq",
+              "keyValue": true
+            },
+            {
+              "keyName": "slot_datetime",
+              "condition": "gt",
+              "keyValue": "={{ $now.plus({ minutes: 225 }).toISO() }}"
+            },
+            {
+              "keyName": "slot_datetime",
+              "condition": "lt",
+              "keyValue": "={{ $now.plus({ minutes: 255 }).toISO() }}"
+            }
+          ]
+        },
+        "returnAll": true,
+        "limit": 10
+      },
+      "id": "data-table-find-4hr-reminders",
+      "name": "Data Table - Find 4hr Reminders",
+      "type": "n8n-nodes-base.dataTable",
+      "typeVersion": 1.1,
+      "position": [
+        760,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "resource": "message",
+        "operation": "send",
+        "sendTo": "={{ $json.candidate_email }}",
+        "subject": "={{ 'Reminder: Your Interview in 4 Hours - ' + $json.job_title }}",
+        "emailType": "html",
+        "message": "={{ '<div style=\"font-family:Arial,sans-serif;max-width:600px;margin:0 auto;padding:32px 24px;\"><p style=\"font-size:16px;color:#333;\">Hi <strong>' + $json.candidate_name + '</strong>,</p><p style=\"font-size:15px;color:#444;line-height:1.7;\">This is a reminder that your interview for the <strong>' + $json.job_title + '</strong> position starts in <strong>4 hours</strong>.</p><div style=\"background:#f5f7ff;border-left:4px solid #1a2744;padding:16px 20px;border-radius:4px;margin:20px 0;\"><p style=\"margin:0;color:#1a2744;\"><strong>' + DateTime.fromISO($json.slot_datetime).setZone('America/Vancouver').toFormat('cccc, LLLL d, yyyy') + '</strong><br><strong>' + DateTime.fromISO($json.slot_datetime).setZone('America/Vancouver').toFormat('h:mm a') + ' Pacific Time</strong><br>12899 80 Ave #203, Surrey, BC V3W 0E6</p></div><p style=\"font-size:15px;color:#444;\">Questions? Call <strong>778-582-4000</strong>. See you soon!</p><br><p style=\"color:#666;font-size:14px;\">Best regards,<br><strong>Karan Verma</strong><br>Nexa Marketing Inc.</p></div>' }}",
+        "options": {
+          "senderName": "Karan Verma",
+          "appendAttribution": false
+        }
+      },
+      "id": "gmail-send-4hr-reminder",
+      "name": "Gmail - Send 4hr Reminder",
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [
+        1040,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "dataTableId": {
+          "__rl": true,
+          "value": "Indeed Interview Slots",
+          "mode": "name",
+          "cachedResultName": "Indeed Interview Slots"
+        },
+        "matchType": "allConditions",
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "id",
+              "condition": "eq",
+              "keyValue": "={{ $('Data Table - Find 4hr Reminders').item.json.id }}"
+            }
+          ]
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "reminder_4hr_sent": true
+          },
+          "matchingColumns": [],
+          "schema": []
+        },
+        "options": {}
+      },
+      "id": "data-table-mark-4hr-reminder-sent",
+      "name": "Data Table - Mark 4hr Reminder Sent",
+      "type": "n8n-nodes-base.dataTable",
+      "typeVersion": 1.1,
+      "position": [
+        1320,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "get",
+        "dataTableId": {
+          "__rl": true,
+          "value": "Indeed Interview Slots",
+          "mode": "name",
+          "cachedResultName": "Indeed Interview Slots"
+        },
+        "matchType": "allConditions",
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "is_booked",
+              "condition": "eq",
+              "keyValue": true
+            },
+            {
+              "keyName": "reminder_1hr_sent",
+              "condition": "neq",
+              "keyValue": true
+            },
+            {
+              "keyName": "slot_datetime",
+              "condition": "gt",
+              "keyValue": "={{ $now.plus({ minutes: 45 }).toISO() }}"
+            },
+            {
+              "keyName": "slot_datetime",
+              "condition": "lt",
+              "keyValue": "={{ $now.plus({ minutes: 75 }).toISO() }}"
+            }
+          ]
+        },
+        "returnAll": true,
+        "limit": 10
+      },
+      "id": "data-table-find-1hr-reminders",
+      "name": "Data Table - Find 1hr Reminders",
+      "type": "n8n-nodes-base.dataTable",
+      "typeVersion": 1.1,
+      "position": [
+        760,
+        560
+      ]
+    },
+    {
+      "parameters": {
+        "resource": "message",
+        "operation": "send",
+        "sendTo": "={{ $json.candidate_email }}",
+        "subject": "={{ 'Your Interview Starts in 1 Hour - ' + $json.job_title }}",
+        "emailType": "html",
+        "message": "={{ '<div style=\"font-family:Arial,sans-serif;max-width:600px;margin:0 auto;padding:32px 24px;\"><p style=\"font-size:16px;color:#333;\">Hi <strong>' + $json.candidate_name + '</strong>,</p><p style=\"font-size:15px;color:#444;line-height:1.7;\">Your interview for the <strong>' + $json.job_title + '</strong> position starts in <strong>1 hour</strong>. We are looking forward to meeting you!</p><div style=\"background:#f5f7ff;border-left:4px solid #1a2744;padding:16px 20px;border-radius:4px;margin:20px 0;\"><p style=\"margin:0;color:#1a2744;\"><strong>' + DateTime.fromISO($json.slot_datetime).setZone('America/Vancouver').toFormat('h:mm a') + ' Pacific Time</strong><br>12899 80 Ave #203, Surrey, BC V3W 0E6</p></div><p style=\"font-size:15px;color:#444;\">Please make sure you have the address ready. See you soon!</p><br><p style=\"color:#666;font-size:14px;\">Best regards,<br><strong>Karan Verma</strong><br>Nexa Marketing Inc.</p></div>' }}",
+        "options": {
+          "senderName": "Karan Verma",
+          "appendAttribution": false
+        }
+      },
+      "id": "gmail-send-1hr-reminder",
+      "name": "Gmail - Send 1hr Reminder",
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [
+        1040,
+        560
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "dataTableId": {
+          "__rl": true,
+          "value": "Indeed Interview Slots",
+          "mode": "name",
+          "cachedResultName": "Indeed Interview Slots"
+        },
+        "matchType": "allConditions",
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "id",
+              "condition": "eq",
+              "keyValue": "={{ $('Data Table - Find 1hr Reminders').item.json.id }}"
+            }
+          ]
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "reminder_1hr_sent": true
+          },
+          "matchingColumns": [],
+          "schema": []
+        },
+        "options": {}
+      },
+      "id": "data-table-mark-1hr-reminder-sent",
+      "name": "Data Table - Mark 1hr Reminder Sent",
+      "type": "n8n-nodes-base.dataTable",
+      "typeVersion": 1.1,
+      "position": [
+        1320,
+        560
+      ]
+    }
+  ],
+  "connections": {
+    "Schedule - Reminder Engine": {
+      "main": [
+        [
+          {
+            "node": "Data Table - Ensure Interview Slots",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Data Table - Ensure Interview Slots": {
+      "main": [
+        [
+          {
+            "node": "Data Table - Find Day Reminders",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Data Table - Find 4hr Reminders",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Data Table - Find 1hr Reminders",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Data Table - Find Day Reminders": {
+      "main": [
+        [
+          {
+            "node": "Gmail - Send Day Reminder",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Gmail - Send Day Reminder": {
+      "main": [
+        [
+          {
+            "node": "Data Table - Mark Day Reminder Sent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Data Table - Find 4hr Reminders": {
+      "main": [
+        [
+          {
+            "node": "Gmail - Send 4hr Reminder",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Gmail - Send 4hr Reminder": {
+      "main": [
+        [
+          {
+            "node": "Data Table - Mark 4hr Reminder Sent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Data Table - Find 1hr Reminders": {
+      "main": [
+        [
+          {
+            "node": "Gmail - Send 1hr Reminder",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Gmail - Send 1hr Reminder": {
+      "main": [
+        [
+          {
+            "node": "Data Table - Mark 1hr Reminder Sent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "pinData": {},
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "staticData": null,
+  "tags": [],
+  "triggerCount": 1,
+  "updatedAt": "2026-06-09T00:00:00.000Z",
+  "versionId": "simple-indeed-reminder-engine-v1",
+  "active": false
+}

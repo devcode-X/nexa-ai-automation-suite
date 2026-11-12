@@ -1,0 +1,469 @@
+{
+    "name": "Indeed — Morning Engine",
+    "flow": [
+        {
+            "id": 1,
+            "module": "builtin:BasicRouter",
+            "version": 1,
+            "mapper": null,
+            "metadata": {
+                "designer": {
+                    "x": 0,
+                    "y": 0
+                }
+            },
+            "routes": [
+                {
+                    "flow": [
+                        {
+                            "id": 2,
+                            "module": "datastore:SearchRecord",
+                            "version": 1,
+                            "parameters": {
+                                "limit": 30,
+                                "datastore": 97467,
+                                "continueWhenNoRes": false
+                            },
+                            "mapper": {
+                                "sort": [],
+                                "filter": [
+                                    [
+                                        {
+                                            "a": "is_booked",
+                                            "b": true,
+                                            "o": "boolean:equal"
+                                        },
+                                        {
+                                            "a": "slot_datetime",
+                                            "b": "{{now}}",
+                                            "o": "date:greater"
+                                        },
+                                        {
+                                            "a": "nudge_sent",
+                                            "b": true,
+                                            "o": "boolean:notequal"
+                                        },
+                                        {
+                                            "a": "rsvp_accepted",
+                                            "b": true,
+                                            "o": "boolean:notequal"
+                                        }
+                                    ]
+                                ],
+                                "mappAbleLimit": ""
+                            },
+                            "metadata": {
+                                "designer": {
+                                    "x": 300,
+                                    "y": -450
+                                },
+                                "restore": {
+                                    "parameters": {
+                                        "datastore": {
+                                            "label": "Indeed_Interview_Slots"
+                                        }
+                                    }
+                                }
+                            }
+                        },
+                        {
+                            "id": 3,
+                            "module": "google-email:sendAnEmail",
+                            "version": 4,
+                            "parameters": {
+                                "__IMTCONN__": 8323025
+                            },
+                            "mapper": {
+                                "cc": [],
+                                "to": [
+                                    "{{2.data.candidate_email}}"
+                                ],
+                                "bcc": [],
+                                "from": "karan9463verma@gmail.com",
+                                "html": "<div style=\"font-family:Arial,sans-serif;max-width:600px;margin:0 auto;padding:32px 24px;\"><p style=\"font-size:16px;color:#333;\">Hi <strong>{{2.data.candidate_name}}</strong>,</p><p style=\"font-size:15px;color:#444;line-height:1.7;\">Just a friendly reminder that you have an upcoming interview for the <strong>{{2.data.job_title}}</strong> position at <strong>Nexa Marketing Inc.</strong>!</p><div style=\"background:#f5f7ff;border-left:4px solid #1a2744;padding:16px 20px;border-radius:4px;margin:20px 0;\"><p style=\"margin:0;color:#1a2744;\">&#128197; <strong>Date:</strong> {{formatDate(2.data.slot_datetime; \"dddd, MMMM D, YYYY\"; \"America/Vancouver\")}}<br>&#128336; <strong>Time:</strong> {{formatDate(2.data.slot_datetime; \"h:mm A\"; \"America/Vancouver\")}} &#8211; {{formatDate(addMinutes(2.data.slot_datetime; 30); \"h:mm A\"; \"America/Vancouver\")}} Pacific time<br>&#128205; <strong>Location:</strong> 12899 80 Ave #203, Surrey, BC V3W 0E6</p></div><p style=\"font-size:15px;color:#444;line-height:1.7;\">Please <strong>reply to this email</strong> to let us know you will be there. Can't make this time? Just reply and we'll find something better &#8212; available <strong>Mon&#8211;Fri, 1:00&#8211;2:30 PM Pacific time</strong>.</p><p style=\"font-size:15px;color:#444;\">Looking forward to meeting you soon!</p><br><p style=\"color:#666;font-size:14px;\">Warm regards,<br><strong>Karan Verma</strong><br>Nexa Marketing Inc.<br>&#128205; 12899 80 Ave #203, Surrey, BC<br>&#9993;&#65039; karan9463verma@gmail.com</p></div>",
+                                "subject": "Quick Reminder — Your Interview at Nexa Marketing Inc.",
+                                "attachments": [],
+                                "contentType": "html"
+                            },
+                            "metadata": {
+                                "designer": {
+                                    "x": 600,
+                                    "y": -450
+                                }
+                            }
+                        },
+                        {
+                            "id": 4,
+                            "module": "datastore:UpdateRecord",
+                            "version": 1,
+                            "parameters": {
+                                "datastore": 97467
+                            },
+                            "mapper": {
+                                "key": "{{2.key}}",
+                                "data": {
+                                    "nudge_sent": true
+                                }
+                            },
+                            "metadata": {
+                                "designer": {
+                                    "x": 900,
+                                    "y": -450
+                                }
+                            }
+                        }
+                    ]
+                },
+                {
+                    "flow": [
+                        {
+                            "id": 5,
+                            "module": "datastore:SearchRecord",
+                            "version": 1,
+                            "parameters": {
+                                "limit": 30,
+                                "datastore": 97467,
+                                "continueWhenNoRes": false
+                            },
+                            "mapper": {
+                                "sort": [],
+                                "filter": [
+                                    [
+                                        {
+                                            "a": "is_booked",
+                                            "b": true,
+                                            "o": "boolean:equal"
+                                        },
+                                        {
+                                            "a": "slot_datetime",
+                                            "b": "{{now}}",
+                                            "o": "date:greater"
+                                        },
+                                        {
+                                            "a": "booking_date",
+                                            "b": "{{addDays(now; -3)}}",
+                                            "o": "date:less"
+                                        },
+                                        {
+                                            "a": "follow_up_1_sent",
+                                            "b": true,
+                                            "o": "boolean:notequal"
+                                        },
+                                        {
+                                            "a": "rsvp_accepted",
+                                            "b": true,
+                                            "o": "boolean:notequal"
+                                        }
+                                    ]
+                                ],
+                                "mappAbleLimit": ""
+                            },
+                            "metadata": {
+                                "designer": {
+                                    "x": 300,
+                                    "y": -150
+                                },
+                                "restore": {
+                                    "parameters": {
+                                        "datastore": {
+                                            "label": "Indeed_Interview_Slots"
+                                        }
+                                    }
+                                }
+                            }
+                        },
+                        {
+                            "id": 6,
+                            "module": "google-email:sendAnEmail",
+                            "version": 4,
+                            "parameters": {
+                                "__IMTCONN__": 8323025
+                            },
+                            "mapper": {
+                                "cc": [],
+                                "to": [
+                                    "{{5.data.candidate_email}}"
+                                ],
+                                "bcc": [],
+                                "from": "karan9463verma@gmail.com",
+                                "html": "<div style=\"font-family:Arial,sans-serif;max-width:600px;margin:0 auto;padding:32px 24px;\"><p style=\"font-size:16px;color:#333;\">Hi <strong>{{5.data.candidate_name}}</strong>,</p><p style=\"font-size:15px;color:#444;line-height:1.7;\">Just checking in &#8212; we sent you an interview invitation a few days ago and wanted to make sure it didn't get lost in your inbox!</p><p style=\"font-size:15px;color:#444;line-height:1.7;\">We're genuinely excited about your application and have a spot reserved for you:</p><div style=\"background:#f5f7ff;border-left:4px solid #1a2744;padding:16px 20px;border-radius:4px;margin:20px 0;\"><p style=\"margin:0;color:#1a2744;\">&#128197; <strong>{{formatDate(5.data.slot_datetime; \"dddd, MMMM D, YYYY\"; \"America/Vancouver\")}}</strong><br>&#128336; <strong>{{formatDate(5.data.slot_datetime; \"h:mm A\"; \"America/Vancouver\")}} &#8211; {{formatDate(addMinutes(5.data.slot_datetime; 30); \"h:mm A\"; \"America/Vancouver\")}} Pacific time</strong><br>&#128205; 12899 80 Ave #203, Surrey, BC V3W 0E6</p></div><p style=\"font-size:15px;color:#444;line-height:1.7;\">Just <strong>reply to this email</strong> to confirm you will be there. If this time doesn't work, just reply &#8212; available <strong>Mon&#8211;Fri, 1:00&#8211;2:30 PM Pacific time</strong>.</p><p style=\"font-size:15px;color:#444;\">We'd love to meet you!</p><br><p style=\"color:#666;font-size:14px;\">Warm regards,<br><strong>Karan Verma</strong><br>Nexa Marketing Inc.</p></div>",
+                                "subject": "Still thinking about the role? Your interview is coming up!",
+                                "attachments": [],
+                                "contentType": "html"
+                            },
+                            "metadata": {
+                                "designer": {
+                                    "x": 600,
+                                    "y": -150
+                                }
+                            }
+                        },
+                        {
+                            "id": 7,
+                            "module": "datastore:UpdateRecord",
+                            "version": 1,
+                            "parameters": {
+                                "datastore": 97467
+                            },
+                            "mapper": {
+                                "key": "{{5.key}}",
+                                "data": {
+                                    "follow_up_1_sent": true
+                                }
+                            },
+                            "metadata": {
+                                "designer": {
+                                    "x": 900,
+                                    "y": -150
+                                }
+                            }
+                        }
+                    ]
+                },
+                {
+                    "flow": [
+                        {
+                            "id": 8,
+                            "module": "datastore:SearchRecord",
+                            "version": 1,
+                            "parameters": {
+                                "limit": 30,
+                                "datastore": 97467,
+                                "continueWhenNoRes": false
+                            },
+                            "mapper": {
+                                "sort": [],
+                                "filter": [
+                                    [
+                                        {
+                                            "a": "is_booked",
+                                            "b": true,
+                                            "o": "boolean:equal"
+                                        },
+                                        {
+                                            "a": "slot_datetime",
+                                            "b": "{{now}}",
+                                            "o": "date:greater"
+                                        },
+                                        {
+                                            "a": "booking_date",
+                                            "b": "{{addDays(now; -7)}}",
+                                            "o": "date:less"
+                                        },
+                                        {
+                                            "a": "follow_up_1_sent",
+                                            "b": true,
+                                            "o": "boolean:equal"
+                                        },
+                                        {
+                                            "a": "follow_up_2_sent",
+                                            "b": true,
+                                            "o": "boolean:notequal"
+                                        },
+                                        {
+                                            "a": "rsvp_accepted",
+                                            "b": true,
+                                            "o": "boolean:notequal"
+                                        }
+                                    ]
+                                ],
+                                "mappAbleLimit": ""
+                            },
+                            "metadata": {
+                                "designer": {
+                                    "x": 300,
+                                    "y": 150
+                                },
+                                "restore": {
+                                    "parameters": {
+                                        "datastore": {
+                                            "label": "Indeed_Interview_Slots"
+                                        }
+                                    }
+                                }
+                            }
+                        },
+                        {
+                            "id": 9,
+                            "module": "google-email:sendAnEmail",
+                            "version": 4,
+                            "parameters": {
+                                "__IMTCONN__": 8323025
+                            },
+                            "mapper": {
+                                "cc": [],
+                                "to": [
+                                    "{{8.data.candidate_email}}"
+                                ],
+                                "bcc": [],
+                                "from": "karan9463verma@gmail.com",
+                                "html": "<div style=\"font-family:Arial,sans-serif;max-width:600px;margin:0 auto;padding:32px 24px;\"><p style=\"font-size:16px;color:#333;\">Hi <strong>{{8.data.candidate_name}}</strong>,</p><p style=\"font-size:15px;color:#444;line-height:1.7;\">We wanted to follow up once more because we genuinely believe you could be a great fit for the <strong>{{8.data.job_title}}</strong> role at Nexa Marketing Inc., and we don't want you to miss this opportunity!</p><p style=\"font-size:15px;color:#444;line-height:1.7;\">Your spot is still being held:</p><div style=\"background:#f5f7ff;border-left:4px solid #1a2744;padding:16px 20px;border-radius:4px;margin:20px 0;\"><p style=\"margin:0;color:#1a2744;\">&#128197; <strong>{{formatDate(8.data.slot_datetime; \"dddd, MMMM D, YYYY\"; \"America/Vancouver\")}}</strong><br>&#128336; <strong>{{formatDate(8.data.slot_datetime; \"h:mm A\"; \"America/Vancouver\")}} &#8211; {{formatDate(addMinutes(8.data.slot_datetime; 30); \"h:mm A\"; \"America/Vancouver\")}} Pacific time</strong><br>&#128205; 12899 80 Ave #203, Surrey, BC V3W 0E6</p></div><p style=\"font-size:15px;color:#444;line-height:1.7;\">It's just <strong>30 minutes</strong> &#8212; come say hi and let's see if it's a great match!</p><p style=\"font-size:15px;color:#444;line-height:1.7;\">If this time no longer works, <strong>reply</strong> and we'll sort it out. Available <strong>Mon&#8211;Fri, 1:00&#8211;2:30 PM Pacific time</strong>.</p><br><p style=\"color:#666;font-size:14px;\">Warm regards,<br><strong>Karan Verma</strong><br>Nexa Marketing Inc.</p></div>",
+                                "subject": "We still want to meet you — Your interview spot is saved",
+                                "attachments": [],
+                                "contentType": "html"
+                            },
+                            "metadata": {
+                                "designer": {
+                                    "x": 600,
+                                    "y": 150
+                                }
+                            }
+                        },
+                        {
+                            "id": 10,
+                            "module": "datastore:UpdateRecord",
+                            "version": 1,
+                            "parameters": {
+                                "datastore": 97467
+                            },
+                            "mapper": {
+                                "key": "{{8.key}}",
+                                "data": {
+                                    "follow_up_2_sent": true
+                                }
+                            },
+                            "metadata": {
+                                "designer": {
+                                    "x": 900,
+                                    "y": 150
+                                }
+                            }
+                        }
+                    ]
+                },
+                {
+                    "flow": [
+                        {
+                            "id": 11,
+                            "module": "datastore:SearchRecord",
+                            "version": 1,
+                            "parameters": {
+                                "limit": 30,
+                                "datastore": 97467,
+                                "continueWhenNoRes": false
+                            },
+                            "mapper": {
+                                "sort": [],
+                                "filter": [
+                                    [
+                                        {
+                                            "a": "is_booked",
+                                            "b": true,
+                                            "o": "boolean:equal"
+                                        },
+                                        {
+                                            "a": "slot_datetime",
+                                            "b": "{{now}}",
+                                            "o": "date:greater"
+                                        },
+                                        {
+                                            "a": "booking_date",
+                                            "b": "{{addDays(now; -15)}}",
+                                            "o": "date:less"
+                                        },
+                                        {
+                                            "a": "follow_up_2_sent",
+                                            "b": true,
+                                            "o": "boolean:equal"
+                                        },
+                                        {
+                                            "a": "follow_up_3_sent",
+                                            "b": true,
+                                            "o": "boolean:notequal"
+                                        },
+                                        {
+                                            "a": "rsvp_accepted",
+                                            "b": true,
+                                            "o": "boolean:notequal"
+                                        }
+                                    ]
+                                ],
+                                "mappAbleLimit": ""
+                            },
+                            "metadata": {
+                                "designer": {
+                                    "x": 300,
+                                    "y": 450
+                                },
+                                "restore": {
+                                    "parameters": {
+                                        "datastore": {
+                                            "label": "Indeed_Interview_Slots"
+                                        }
+                                    }
+                                }
+                            }
+                        },
+                        {
+                            "id": 12,
+                            "module": "google-email:sendAnEmail",
+                            "version": 4,
+                            "parameters": {
+                                "__IMTCONN__": 8323025
+                            },
+                            "mapper": {
+                                "cc": [],
+                                "to": [
+                                    "{{11.data.candidate_email}}"
+                                ],
+                                "bcc": [],
+                                "from": "karan9463verma@gmail.com",
+                                "html": "<div style=\"font-family:Arial,sans-serif;max-width:600px;margin:0 auto;padding:32px 24px;\"><p style=\"font-size:16px;color:#333;\">Hi <strong>{{11.data.candidate_name}}</strong>,</p><p style=\"font-size:15px;color:#444;line-height:1.7;\">This is our final follow-up about the <strong>{{11.data.job_title}}</strong> position at Nexa Marketing Inc.</p><p style=\"font-size:15px;color:#444;line-height:1.7;\">We've been holding this spot just for you:</p><div style=\"background:#f5f7ff;border-left:4px solid #1a2744;padding:16px 20px;border-radius:4px;margin:20px 0;\"><p style=\"margin:0;color:#1a2744;\">&#128197; <strong>{{formatDate(11.data.slot_datetime; \"dddd, MMMM D, YYYY\"; \"America/Vancouver\")}}</strong><br>&#128336; <strong>{{formatDate(11.data.slot_datetime; \"h:mm A\"; \"America/Vancouver\")}} to {{formatDate(addMinutes(11.data.slot_datetime; 30); \"h:mm A\"; \"America/Vancouver\")}} Pacific time</strong><br>&#128205; 12899 80 Ave #203, Surrey, BC V3W 0E6</p></div><p style=\"font-size:15px;color:#444;line-height:1.7;\">If you are still interested, please reply to confirm. It's only 30 minutes and could be a great opportunity!</p><p style=\"font-size:15px;color:#444;line-height:1.7;\">If your situation has changed, we completely understand &#8212; just let us know.</p><p style=\"font-size:15px;color:#444;\">Wishing you all the best.</p><br><p style=\"color:#666;font-size:14px;\">Warm regards,<br><strong>Karan Verma</strong><br>Nexa Marketing Inc.<br>&#9993;&#65039; karan9463verma@gmail.com</p></div>",
+                                "subject": "Last chance — We're saving your interview spot at Nexa",
+                                "attachments": [],
+                                "contentType": "html"
+                            },
+                            "metadata": {
+                                "designer": {
+                                    "x": 600,
+                                    "y": 450
+                                }
+                            }
+                        },
+                        {
+                            "id": 13,
+                            "module": "datastore:UpdateRecord",
+                            "version": 1,
+                            "parameters": {
+                                "datastore": 97467
+                            },
+                            "mapper": {
+                                "key": "{{11.key}}",
+                                "data": {
+                                    "follow_up_3_sent": true
+                                }
+                            },
+                            "metadata": {
+                                "designer": {
+                                    "x": 900,
+                                    "y": 450
+                                }
+                            }
+                        }
+                    ]
+                }
+            ]
+        }
+    ],
+    "metadata": {
+        "instant": false,
+        "version": 1,
+        "scenario": {
+            "roundtrips": 1,
+            "maxErrors": 3,
+            "autoCommit": true,
+            "autoCommitTriggerLast": false,
+            "sequential": true,
+            "slots": null,
+            "confidential": false,
+            "dataloss": false,
+            "dlq": false,
+            "freshVariables": false
+        },
+        "designer": {
+            "orphans": []
+        },
+        "zone": "us2.make.com",
+        "notes": []
+    }
+}

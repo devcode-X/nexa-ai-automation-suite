@@ -1,0 +1,128 @@
+{
+    "name": "Nexa — AI Lead Qualifier",
+    "flow": [
+        {
+            "id": 1,
+            "module": "gateway:CustomWebHook",
+            "version": 1,
+            "parameters": {
+                "hook": 2260726,
+                "maxResults": 1
+            },
+            "mapper": {},
+            "metadata": {
+                "designer": {
+                    "x": 0,
+                    "y": 0
+                }
+            }
+        },
+        {
+            "id": 2,
+            "module": "http:ActionSendData",
+            "version": 3,
+            "parameters": {
+                "handleErrors": false
+            },
+            "mapper": {
+                "url": "https://api.anthropic.com/v1/messages",
+                "body": "{\"model\":\"claude-haiku-4-5-20251001\",\"max_tokens\":1024,\"messages\":[{\"role\":\"user\",\"content\":\"You are Nexa Consultancy AI Receptionist qualifying leads for Student Aid BC funding (up to $60K single or $120K couple at 0% interest for skill upgrades in BC). Lead data: name={{1.name}}, email={{1.email}}, phone={{1.phone}}, immigration_status={{1.immigration_status}}, employment={{1.employment_status}}, annual_income={{1.annual_income}}, province={{1.province}}, notes={{1.notes}}. ELIGIBILITY: ELIGIBLE if BC resident AND Canadian Citizen or Permanent Resident or Protected Person AND has income source. INELIGIBLE if visitor visa or study permit only or outside BC or zero income. MAYBE if unclear. TIER: HOT if ready to apply now, WARM if needs more info, COLD if not ready. Write a warm professional email to the lead. Return ONLY a valid JSON object with no markdown, no explanation, containing: eligibility (ELIGIBLE or INELIGIBLE or MAYBE), tier (HOT or WARM or COLD), eligible_amount (60000 for single eligible, 120000 for couple eligible, 0 for ineligible), recipient_email (the lead email), email_subject (subject line), email_html (full HTML email body), karan_alert (one-line summary: Tier-Name-Status-EstAmount-RecommendedAction).\"}]}",
+                "method": "POST",
+                "headers": [
+                    {
+                        "name": "x-api-key",
+                        "value": "sk-ant-REDACTED_REPLACE_WITH_YOUR_KEY"
+                    },
+                    {
+                        "name": "anthropic-version",
+                        "value": "2023-06-01"
+                    },
+                    {
+                        "name": "content-type",
+                        "value": "application/json"
+                    }
+                ],
+                "parseResponse": true
+            },
+            "metadata": {
+                "designer": {
+                    "x": 300,
+                    "y": 0
+                }
+            }
+        },
+        {
+            "id": 3,
+            "module": "google-email:sendAnEmail",
+            "version": 4,
+            "parameters": {
+                "__IMTCONN__": 8323025
+            },
+            "mapper": {
+                "cc": [],
+                "to": [
+                    "{{parseJSON(2.body.content[1].text).recipient_email}}"
+                ],
+                "bcc": [],
+                "from": "karan9463verma@gmail.com",
+                "html": "{{parseJSON(2.body.content[1].text).email_html}}",
+                "subject": "{{parseJSON(2.body.content[1].text).email_subject}}",
+                "attachments": [],
+                "contentType": "html"
+            },
+            "metadata": {
+                "designer": {
+                    "x": 600,
+                    "y": 0
+                }
+            }
+        },
+        {
+            "id": 4,
+            "module": "http:ActionSendData",
+            "version": 3,
+            "parameters": {
+                "handleErrors": false
+            },
+            "mapper": {
+                "url": "https://hook.us2.make.com/cn424cy8r31gmmvq9b7bttiyyerbad1i",
+                "body": "{\"message\":\"LEAD QUALIFIED\\n{{parseJSON(2.body.content[1].text).karan_alert}}\\nEligibility: {{parseJSON(2.body.content[1].text).eligibility}} | Tier: {{parseJSON(2.body.content[1].text).tier}} | Amount: ${{parseJSON(2.body.content[1].text).eligible_amount}}\\nEmail sent to: {{parseJSON(2.body.content[1].text).recipient_email}}\",\"alert_type\":\"lead_qualifier\",\"data\":{}}",
+                "method": "POST",
+                "headers": [
+                    {
+                        "name": "content-type",
+                        "value": "application/json"
+                    }
+                ],
+                "parseResponse": false
+            },
+            "metadata": {
+                "designer": {
+                    "x": 900,
+                    "y": 0
+                }
+            }
+        }
+    ],
+    "metadata": {
+        "instant": true,
+        "version": 1,
+        "scenario": {
+            "roundtrips": 1,
+            "maxErrors": 3,
+            "autoCommit": true,
+            "autoCommitTriggerLast": true,
+            "sequential": false,
+            "slots": null,
+            "confidential": false,
+            "dataloss": false,
+            "dlq": false,
+            "freshVariables": false
+        },
+        "designer": {
+            "orphans": []
+        },
+        "zone": "us2.make.com",
+        "notes": []
+    }
+}

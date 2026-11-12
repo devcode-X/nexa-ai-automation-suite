@@ -1,0 +1,291 @@
+{
+    "name": "Nexa — College Stage 1 Intake",
+    "flow": [
+        {
+            "id": 1,
+            "module": "gateway:CustomWebHook",
+            "version": 1,
+            "parameters": {
+                "hook": 2238068,
+                "maxResults": 1
+            },
+            "mapper": {},
+            "metadata": {
+                "designer": {
+                    "x": 0,
+                    "y": 0
+                }
+            }
+        },
+        {
+            "id": 2,
+            "module": "http:ActionSendData",
+            "version": 3,
+            "parameters": {
+                "handleErrors": false,
+                "useNewZLibDeCompress": true
+            },
+            "mapper": {
+                "url": "https://services.leadconnectorhq.com/contacts/upsert",
+                "data": "{\"locationId\":\"NRcuWE1OyAEdoOmZqjpu\",\"firstName\":\"{{1.firstName}}\",\"lastName\":\"{{1.lastName}}\",\"email\":\"{{1.email}}\",\"phone\":\"{{1.phone}}\",\"address1\":\"{{1.address}}\",\"assignedTo\":\"{{ifempty(if(contains(lower(1.affiliateCode); \"mn-\"); \"UzhiJxPWxRgYgWJi3rnV\"; \"B9UDIq4wY8tt7B7wqVwe\"); \"B9UDIq4wY8tt7B7wqVwe\")}}\",\"tags\":[\"college-intake\",\"stage-1-complete\",\"college-multihexa\"]}",
+                "gzip": false,
+                "method": "post",
+                "headers": [
+                    {
+                        "name": "Authorization",
+                        "value": "Bearer YOUR_API_TOKEN_HERE"
+                    },
+                    {
+                        "name": "Version",
+                        "value": "2021-07-28"
+                    },
+                    {
+                        "name": "Content-Type",
+                        "value": "application/json"
+                    }
+                ],
+                "useMtls": false,
+                "bodyType": "raw",
+                "contentType": "application/json",
+                "serializeUrl": false,
+                "shareCookies": false,
+                "parseResponse": true,
+                "followRedirect": true,
+                "useQuerystring": false,
+                "followAllRedirects": false,
+                "rejectUnauthorized": true
+            },
+            "metadata": {
+                "designer": {
+                    "x": 300,
+                    "y": 0
+                }
+            }
+        },
+        {
+            "id": 6,
+            "module": "http:ActionSendData",
+            "version": 3,
+            "parameters": {
+                "handleErrors": true,
+                "useNewZLibDeCompress": true
+            },
+            "mapper": {
+                "url": "https://services.leadconnectorhq.com/opportunities/",
+                "data": "{\"pipelineId\":\"EOW1CWVHMkNmlbr4sI6O\",\"pipelineStageId\":\"83ae729a-6b14-426d-928e-998de5b3b256\",\"locationId\":\"NRcuWE1OyAEdoOmZqjpu\",\"contactId\":\"{{2.data.contact.id}}\",\"name\":\"{{1.firstName}} {{1.lastName}} — MHBC College Enrollment\",\"status\":\"open\",\"assignedTo\":\"{{ifempty(if(contains(lower(1.affiliateCode); \"mn-\"); \"UzhiJxPWxRgYgWJi3rnV\"; \"B9UDIq4wY8tt7B7wqVwe\"); \"B9UDIq4wY8tt7B7wqVwe\")}}\",\"source\":\"Stage 1 Form\"}",
+                "gzip": false,
+                "method": "post",
+                "headers": [
+                    {
+                        "name": "Authorization",
+                        "value": "Bearer YOUR_API_TOKEN_HERE"
+                    },
+                    {
+                        "name": "Version",
+                        "value": "2021-07-28"
+                    },
+                    {
+                        "name": "Content-Type",
+                        "value": "application/json"
+                    }
+                ],
+                "useMtls": false,
+                "bodyType": "raw",
+                "contentType": "application/json",
+                "serializeUrl": false,
+                "shareCookies": false,
+                "parseResponse": true,
+                "followRedirect": true,
+                "useQuerystring": false,
+                "followAllRedirects": false,
+                "rejectUnauthorized": true
+            },
+            "metadata": {
+                "designer": {
+                    "x": 450,
+                    "y": 0
+                }
+            }
+        },
+        {
+            "id": 3,
+            "module": "http:ActionSendData",
+            "version": 3,
+            "parameters": {
+                "handleErrors": false,
+                "useNewZLibDeCompress": true
+            },
+            "mapper": {
+                "url": "https://services.leadconnectorhq.com/conversations/messages",
+                "data": "{\"type\":\"Email\",\"contactId\":\"gQhb5JvGathC8UfA9QzS\",\"subject\":\"🔒 [INTERNAL/PRIVATE] Stage 1 — {{1.firstName}} {{1.lastName}}\",\"html\":\"<h2>New College Application — Full Internal View</h2><p><strong>Name:</strong> {{1.firstName}} {{1.lastName}}<br><strong>Email:</strong> {{1.email}}<br><strong>Phone:</strong> {{1.phone}}<br><strong>Address:</strong> {{1.address}}<br><strong>Affiliate Code:</strong> {{1.affiliateCode}}<br><strong>GHL ID:</strong> {{2.data.contact.id}}</p><h3 style='color:#b91c1c'>🔒 PROOF OF STATUS (PRIVATE — KARAN ONLY)</h3><p>Type: {{1.proofOfStatusType}}</p><p>{{1.proofOfStatusDocs}}</p><h3 style='color:#b91c1c'>🔒 PHOTO ID (PRIVATE — KARAN ONLY)</h3><p>Type: {{1.photoIdType}}</p><p>{{1.photoIdDocs}}</p><h3>ENGLISH / STUDY DOCUMENTS</h3><p>English Type: {{1.englishProofType}} | Study Type: {{1.studyProofType}}</p><p>{{1.englishProofDocs}}</p>\"}",
+                "gzip": false,
+                "method": "post",
+                "headers": [
+                    {
+                        "name": "Authorization",
+                        "value": "Bearer YOUR_API_TOKEN_HERE"
+                    },
+                    {
+                        "name": "Version",
+                        "value": "2021-07-28"
+                    },
+                    {
+                        "name": "Content-Type",
+                        "value": "application/json"
+                    }
+                ],
+                "useMtls": false,
+                "bodyType": "raw",
+                "contentType": "application/json",
+                "serializeUrl": false,
+                "shareCookies": false,
+                "parseResponse": true,
+                "followRedirect": true,
+                "useQuerystring": false,
+                "followAllRedirects": false,
+                "rejectUnauthorized": true
+            },
+            "metadata": {
+                "designer": {
+                    "x": 600,
+                    "y": 0
+                }
+            }
+        },
+        {
+            "id": 4,
+            "module": "http:ActionSendData",
+            "version": 3,
+            "parameters": {
+                "handleErrors": false,
+                "useNewZLibDeCompress": true
+            },
+            "filter": {
+                "name": "Only notify Mike if MN-* code",
+                "conditions": [
+                    [
+                        {
+                            "a": "{{lower(1.affiliateCode)}}",
+                            "b": "mn-",
+                            "o": "text:contain"
+                        }
+                    ]
+                ]
+            },
+            "mapper": {
+                "url": "https://services.leadconnectorhq.com/conversations/messages",
+                "data": "{\"type\":\"Email\",\"contactId\":\"SUt8iIVse3KiNSLV6wSB\",\"subject\":\"New Student via Your Team — {{1.firstName}} {{1.lastName}}\",\"html\":\"<div style='font-family:Arial,sans-serif;max-width:620px;'><div style='background:#1E3A8A;padding:16px 20px;'><h2 style='color:#fff;margin:0;font-size:17px'>New Student Application — Action Needed</h2></div><div style='padding:22px;background:#fff;'><p>Hi Mike, a new student has submitted Stage 1 via your team's branded link.</p><table style='border-collapse:collapse;width:100%;font-size:14px;margin-bottom:14px;'><tr style='background:#f1f5f9;'><td style='padding:8px 12px;font-weight:700;width:32%;'>Name</td><td style='padding:8px 12px;'>{{1.firstName}} {{1.lastName}}</td></tr><tr><td style='padding:8px 12px;font-weight:700;'>Email</td><td style='padding:8px 12px;'>{{1.email}}</td></tr><tr style='background:#f1f5f9;'><td style='padding:8px 12px;font-weight:700;'>Phone</td><td style='padding:8px 12px;'>{{1.phone}}</td></tr><tr><td style='padding:8px 12px;font-weight:700;'>Home Address</td><td style='padding:8px 12px;'>{{1.address}}</td></tr><tr style='background:#f1f5f9;'><td style='padding:8px 12px;font-weight:700;'>Affiliate Code</td><td style='padding:8px 12px;'>{{1.affiliateCode}}</td></tr></table><h3 style='color:#0a2540;'>English / Study Documents</h3><p>English Type: <strong>{{1.englishProofType}}</strong> | Study Type: {{1.studyProofType}}</p><p>{{1.englishProofDocs}}</p><div style='background:#f9fafb;border:1px solid #e5e7eb;padding:12px;border-radius:6px;margin:16px 0;font-size:13px;color:#6b7280'><strong>Privacy note:</strong> Photo ID and proof of status are private — Nexa internal team only.</div><p>Customer is auto-assigned to your account. <a href='https://partners.thenexaconsultancy.com/stage2-partner.html?id={{2.data.contact.id}}&name={{1.firstName}}%20{{1.lastName}}&email={{1.email}}&phone={{1.phone}}&engType={{1.englishProofType}}' style='background:#1E3A8A;color:#fff;padding:12px 24px;border-radius:6px;text-decoration:none;font-weight:bold;'>Complete Stage 2 →</a></p></div></div>\"}",
+                "gzip": false,
+                "method": "post",
+                "headers": [
+                    {
+                        "name": "Authorization",
+                        "value": "Bearer YOUR_API_TOKEN_HERE"
+                    },
+                    {
+                        "name": "Version",
+                        "value": "2021-07-28"
+                    },
+                    {
+                        "name": "Content-Type",
+                        "value": "application/json"
+                    }
+                ],
+                "useMtls": false,
+                "bodyType": "raw",
+                "contentType": "application/json",
+                "serializeUrl": false,
+                "shareCookies": false,
+                "parseResponse": true,
+                "followRedirect": true,
+                "useQuerystring": false,
+                "followAllRedirects": false,
+                "rejectUnauthorized": true
+            },
+            "metadata": {
+                "designer": {
+                    "x": 900,
+                    "y": 0
+                }
+            }
+        },
+        {
+            "id": 5,
+            "module": "http:ActionSendData",
+            "version": 3,
+            "parameters": {
+                "handleErrors": false,
+                "useNewZLibDeCompress": true
+            },
+            "filter": {
+                "name": "Only notify Vineet if MN-* code",
+                "conditions": [
+                    [
+                        {
+                            "a": "{{lower(1.affiliateCode)}}",
+                            "b": "mn-",
+                            "o": "text:contain"
+                        }
+                    ]
+                ]
+            },
+            "mapper": {
+                "url": "https://services.leadconnectorhq.com/conversations/messages",
+                "data": "{\"type\":\"Email\",\"contactId\":\"n9aYOQCVbGLbqmrNfaRb\",\"subject\":\"New Student via Your Team — {{1.firstName}} {{1.lastName}}\",\"html\":\"<div style='font-family:Arial,sans-serif;max-width:620px;'><div style='background:#1E3A8A;padding:16px 20px;'><h2 style='color:#fff;margin:0;font-size:17px'>New Student Application — Action Needed</h2></div><div style='padding:22px;background:#fff;'><p>Hi Vineet, a new student has submitted Stage 1 via your team's branded link.</p><table style='border-collapse:collapse;width:100%;font-size:14px;margin-bottom:14px;'><tr style='background:#f1f5f9;'><td style='padding:8px 12px;font-weight:700;width:32%;'>Name</td><td style='padding:8px 12px;'>{{1.firstName}} {{1.lastName}}</td></tr><tr><td style='padding:8px 12px;font-weight:700;'>Email</td><td style='padding:8px 12px;'>{{1.email}}</td></tr><tr style='background:#f1f5f9;'><td style='padding:8px 12px;font-weight:700;'>Phone</td><td style='padding:8px 12px;'>{{1.phone}}</td></tr><tr><td style='padding:8px 12px;font-weight:700;'>Home Address</td><td style='padding:8px 12px;'>{{1.address}}</td></tr></table><h3>English / Study Docs</h3><p>{{1.englishProofType}} | {{1.englishProofDocs}}</p><p><a href='https://partners.thenexaconsultancy.com/stage2-partner.html?id={{2.data.contact.id}}&name={{1.firstName}}%20{{1.lastName}}&email={{1.email}}&phone={{1.phone}}&engType={{1.englishProofType}}' style='background:#1E3A8A;color:#fff;padding:12px 24px;border-radius:6px;text-decoration:none;font-weight:bold;'>Complete Stage 2 →</a></p></div></div>\"}",
+                "gzip": false,
+                "method": "post",
+                "headers": [
+                    {
+                        "name": "Authorization",
+                        "value": "Bearer YOUR_API_TOKEN_HERE"
+                    },
+                    {
+                        "name": "Version",
+                        "value": "2021-07-28"
+                    },
+                    {
+                        "name": "Content-Type",
+                        "value": "application/json"
+                    }
+                ],
+                "useMtls": false,
+                "bodyType": "raw",
+                "contentType": "application/json",
+                "serializeUrl": false,
+                "shareCookies": false,
+                "parseResponse": true,
+                "followRedirect": true,
+                "useQuerystring": false,
+                "followAllRedirects": false,
+                "rejectUnauthorized": true
+            },
+            "metadata": {
+                "designer": {
+                    "x": 1200,
+                    "y": 0
+                }
+            }
+        }
+    ],
+    "metadata": {
+        "instant": true,
+        "version": 1,
+        "scenario": {
+            "roundtrips": 1,
+            "maxErrors": 10,
+            "autoCommit": true,
+            "autoCommitTriggerLast": true,
+            "sequential": false,
+            "slots": null,
+            "confidential": false,
+            "dataloss": false,
+            "dlq": false,
+            "freshVariables": false
+        },
+        "designer": {
+            "orphans": []
+        },
+        "zone": "us2.make.com",
+        "notes": []
+    }
+}

@@ -1,0 +1,89 @@
+{
+  "name": "Rishi - Weekly Student Portal Login Reminder",
+  "nodes": [
+    {
+      "parameters": {
+        "interval": [
+          1
+        ],
+        "triggerTimes": {
+          "item": [
+            {
+              "mode": "everyWeek",
+              "weekday": "monday",
+              "hour": 12,
+              "minute": 0
+            }
+          ]
+        }
+      },
+      "id": "schedule-weekly-student-portal-login-reminder",
+      "name": "Schedule - Weekly Student Portal Login Reminder",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        220,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://services.leadconnectorhq.com/contacts/n9qauNukHCLz2h4qBRgB/tags",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "Bearer YOUR_API_TOKEN_HERE"
+            },
+            {
+              "name": "Version",
+              "value": "2021-07-28"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "contentType": "json",
+        "jsonBody": "={{ { tags: ['rishi-remind-student-portal'] } }}",
+        "options": {}
+      },
+      "id": "ghl-add-student-portal-reminder-tag",
+      "name": "GHL - Add Student Portal Reminder Tag",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        520,
+        300
+      ]
+    }
+  ],
+  "connections": {
+    "Schedule - Weekly Student Portal Login Reminder": {
+      "main": [
+        [
+          {
+            "node": "GHL - Add Student Portal Reminder Tag",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "pinData": {},
+  "settings": {
+    "executionOrder": "v1",
+    "timezone": "America/Los_Angeles"
+  },
+  "staticData": null,
+  "tags": [],
+  "triggerCount": 1,
+  "updatedAt": "2026-06-09T00:00:00.000Z",
+  "versionId": "simple-rishi-weekly-student-portal-login-reminder-v1",
+  "active": false
+}

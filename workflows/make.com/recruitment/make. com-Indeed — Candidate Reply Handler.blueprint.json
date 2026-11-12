@@ -1,0 +1,537 @@
+{
+    "name": "Indeed — Candidate Reply Handler",
+    "flow": [
+        {
+            "id": 1,
+            "module": "google-email:TriggerNewEmail",
+            "version": 1,
+            "parameters": {
+                "folder": "INBOX",
+                "markSeen": true,
+                "maxResults": 1,
+                "__IMTCONN__": 8323025
+            },
+            "mapper": {},
+            "metadata": {
+                "designer": {
+                    "x": 0,
+                    "y": 0
+                }
+            }
+        },
+        {
+            "id": 2,
+            "module": "http:ActionSendData",
+            "version": 3,
+            "parameters": {
+                "handleErrors": false
+            },
+            "mapper": {
+                "url": "https://api.anthropic.com/v1/messages",
+                "body": "{\"model\":\"claude-haiku-4-5-20251001\",\"max_tokens\":256,\"messages\":[{\"role\":\"user\",\"content\":\"Analyze this email and classify it. Email subject: {{1.subject}}. Email body: {{1.text.plain}}. Return ONLY valid JSON with no markdown, using these exact keys: type (string, one of: reschedule_request, rsvp_confirm, calendar_decline, other), sender_email (string, the actual candidate email address extracted from the email from header or body), preferred_time_mentioned (string), reason (string). Rules: reschedule_request=candidate wants to change their interview time; rsvp_confirm=email subject starts with Accepted: (Google Calendar acceptance) OR candidate explicitly confirms attendance (yes, confirmed, I will attend, looking forward, see you, I will come, I will be there); calendar_decline=email subject starts with Declined: (Google Calendar decline) OR candidate says they cannot attend or want to cancel; other=anything else.\"}]}",
+                "method": "POST",
+                "headers": [
+                    {
+                        "name": "x-api-key",
+                        "value": "sk-ant-REDACTED_REPLACE_WITH_YOUR_KEY"
+                    },
+                    {
+                        "name": "anthropic-version",
+                        "value": "2023-06-01"
+                    },
+                    {
+                        "name": "content-type",
+                        "value": "application/json"
+                    }
+                ],
+                "parseResponse": true
+            },
+            "metadata": {
+                "designer": {
+                    "x": 300,
+                    "y": 0
+                }
+            }
+        },
+        {
+            "id": 3,
+            "module": "builtin:BasicRouter",
+            "version": 1,
+            "mapper": null,
+            "metadata": {
+                "designer": {
+                    "x": 600,
+                    "y": 0
+                }
+            },
+            "routes": [
+                {
+                    "flow": [
+                        {
+                            "id": 4,
+                            "module": "datastore:SearchRecord",
+                            "version": 1,
+                            "parameters": {
+                                "dataStoreId": 97467
+                            },
+                            "filter": {
+                                "name": "Is reschedule",
+                                "conditions": [
+                                    [
+                                        {
+                                            "a": "{{parseJSON(2.data.content[1].text).type}}",
+                                            "b": "reschedule_request",
+                                            "o": "text:equal"
+                                        }
+                                    ]
+                                ]
+                            },
+                            "mapper": {
+                                "max": 1,
+                                "filter": {
+                                    "conditions": [
+                                        [
+                                            {
+                                                "a": "{{1.candidate_email}}",
+                                                "b": "{{1.from[].email}}",
+                                                "o": "text:equal"
+                                            },
+                                            {
+                                                "a": "{{1.is_booked}}",
+                                                "b": true,
+                                                "o": "boolean:equal"
+                                            },
+                                            {
+                                                "a": "{{1.slot_datetime}}",
+                                                "b": "{{now}}",
+                                                "o": "date:greaterThan"
+                                            }
+                                        ]
+                                    ]
+                                }
+                            },
+                            "metadata": {
+                                "designer": {
+                                    "x": 900,
+                                    "y": -300
+                                }
+                            }
+                        },
+                        {
+                            "id": 5,
+                            "module": "datastore:SearchRecord",
+                            "version": 1,
+                            "parameters": {
+                                "dataStoreId": 97467
+                            },
+                            "filter": {
+                                "name": "Old slot found",
+                                "conditions": [
+                                    [
+                                        {
+                                            "a": "{{4.key}}",
+                                            "b": "",
+                                            "o": "text:notEqual"
+                                        }
+                                    ]
+                                ]
+                            },
+                            "mapper": {
+                                "max": 1,
+                                "filter": {
+                                    "conditions": [
+                                        [
+                                            {
+                                                "a": "{{1.is_booked}}",
+                                                "b": false,
+                                                "o": "boolean:equal"
+                                            },
+                                            {
+                                                "a": "{{1.slot_datetime}}",
+                                                "b": "{{now}}",
+                                                "o": "date:greaterThan"
+                                            }
+                                        ]
+                                    ]
+                                }
+                            },
+                            "metadata": {
+                                "designer": {
+                                    "x": 1200,
+                                    "y": -300
+                                }
+                            }
+                        },
+                        {
+                            "id": 6,
+                            "module": "datastore:UpdateRecord",
+                            "version": 1,
+                            "parameters": {
+                                "dataStoreId": 97467
+                            },
+                            "filter": {
+                                "name": "New slot found",
+                                "conditions": [
+                                    [
+                                        {
+                                            "a": "{{5.key}}",
+                                            "b": "",
+                                            "o": "text:notEqual"
+                                        }
+                                    ]
+                                ]
+                            },
+                            "mapper": {
+                                "key": "{{4.key}}",
+                                "data": {
+                                    "is_booked": false,
+                                    "candidate_name": "",
+                                    "candidate_email": "",
+                                    "calendar_event_id": "",
+                                    "reminder_1hr_sent": false,
+                                    "reminder_4hr_sent": false,
+                                    "reminder_day_sent": false
+                                }
+                            },
+                            "metadata": {
+                                "designer": {
+                                    "x": 1500,
+                                    "y": -300
+                                }
+                            }
+                        },
+                        {
+                            "id": 7,
+                            "module": "datastore:UpdateRecord",
+                            "version": 1,
+                            "parameters": {
+                                "dataStoreId": 97467
+                            },
+                            "mapper": {
+                                "key": "{{5.key}}",
+                                "data": {
+                                    "is_booked": true,
+                                    "job_title": "{{4.data.job_title}}",
+                                    "candidate_name": "{{4.data.candidate_name}}",
+                                    "candidate_email": "{{4.data.candidate_email}}",
+                                    "reminder_1hr_sent": false,
+                                    "reminder_4hr_sent": false,
+                                    "reminder_day_sent": false
+                                }
+                            },
+                            "metadata": {
+                                "designer": {
+                                    "x": 1800,
+                                    "y": -300
+                                }
+                            }
+                        },
+                        {
+                            "id": 8,
+                            "module": "google-email:sendAnEmail",
+                            "version": 4,
+                            "parameters": {
+                                "__IMTCONN__": 8323025
+                            },
+                            "mapper": {
+                                "cc": [],
+                                "to": [
+                                    "{{4.data.candidate_email}}"
+                                ],
+                                "bcc": [],
+                                "from": "karan9463verma@gmail.com",
+                                "html": "<p>Hi {{4.data.candidate_name}},</p><p>We have rescheduled your interview for <strong>{{4.data.job_title}}</strong> to a new time.</p><p><strong>📅 New Date:</strong> {{formatDate(5.data.slot_datetime; \"dddd, MMMM D, YYYY\"; \"America/Vancouver\")}}<br><strong>🕐 New Time:</strong> {{formatDate(5.data.slot_datetime; \"h:mm A\"; \"America/Vancouver\")}} – {{formatDate(addMinutes(5.data.slot_datetime; 30); \"h:mm A\"; \"America/Vancouver\")}} Pacific Time<br><strong>⏱ Duration:</strong> 30 minutes</p><p>If this new time does not work, please reply again and we will find another slot.</p><p>Best regards,<br><strong>Karan Verma</strong><br>Nexa Marketing Inc.</p>",
+                                "subject": "Your Interview Has Been Rescheduled — {{4.data.job_title}}",
+                                "attachments": [],
+                                "contentType": "html"
+                            },
+                            "metadata": {
+                                "designer": {
+                                    "x": 2100,
+                                    "y": -300
+                                }
+                            }
+                        }
+                    ]
+                },
+                {
+                    "flow": [
+                        {
+                            "id": 9,
+                            "module": "datastore:SearchRecord",
+                            "version": 1,
+                            "parameters": {
+                                "dataStoreId": 97467
+                            },
+                            "filter": {
+                                "name": "Is RSVP confirm",
+                                "conditions": [
+                                    [
+                                        {
+                                            "a": "{{parseJSON(2.data.content[1].text).type}}",
+                                            "b": "rsvp_confirm",
+                                            "o": "text:equal"
+                                        }
+                                    ]
+                                ]
+                            },
+                            "mapper": {
+                                "max": 1,
+                                "filter": {
+                                    "conditions": [
+                                        [
+                                            {
+                                                "a": "candidate_email",
+                                                "b": "{{parseJSON(2.data.content[1].text).sender_email}}",
+                                                "o": "text:equal"
+                                            },
+                                            {
+                                                "a": "is_booked",
+                                                "b": true,
+                                                "o": "boolean:equal"
+                                            }
+                                        ]
+                                    ]
+                                }
+                            },
+                            "metadata": {
+                                "designer": {
+                                    "x": 900,
+                                    "y": 0
+                                }
+                            }
+                        },
+                        {
+                            "id": 10,
+                            "module": "datastore:UpdateRecord",
+                            "version": 1,
+                            "parameters": {
+                                "dataStoreId": 97467
+                            },
+                            "filter": {
+                                "name": "Record found",
+                                "conditions": [
+                                    [
+                                        {
+                                            "a": "{{9.key}}",
+                                            "b": "",
+                                            "o": "text:notEqual"
+                                        }
+                                    ]
+                                ]
+                            },
+                            "mapper": {
+                                "key": "{{9.key}}",
+                                "rsvp_accepted": true
+                            },
+                            "metadata": {
+                                "designer": {
+                                    "x": 1200,
+                                    "y": 0
+                                }
+                            }
+                        },
+                        {
+                            "id": 14,
+                            "module": "google-calendar:createAnEvent",
+                            "version": 5,
+                            "parameters": {
+                                "__IMTCONN__": 8722757
+                            },
+                            "mapper": {
+                                "end": "{{addMinutes(9.data.slot_datetime; 30)}}",
+                                "start": "{{9.data.slot_datetime}}",
+                                "summary": "Interview — {{9.data.candidate_name}} | {{9.data.job_title}}",
+                                "calendar": "karan9463verma@gmail.com",
+                                "location": "12899 80 Ave #203, Surrey, BC V3W 0E6",
+                                "attendees": [
+                                    {
+                                        "email": "{{9.data.candidate_email}}"
+                                    },
+                                    {
+                                        "email": "themarketinghub011@gmail.com"
+                                    }
+                                ],
+                                "description": "Confirmed in-person interview for {{9.data.job_title}} at Nexa Marketing Inc.\n\nCandidate: {{9.data.candidate_name}}\nEmail: {{9.data.candidate_email}}",
+                                "sendNotifications": false
+                            },
+                            "metadata": {
+                                "designer": {
+                                    "x": 1500,
+                                    "y": 0
+                                }
+                            }
+                        },
+                        {
+                            "id": 15,
+                            "module": "datastore:UpdateRecord",
+                            "version": 1,
+                            "parameters": {
+                                "dataStoreId": 97467
+                            },
+                            "mapper": {
+                                "key": "{{9.key}}",
+                                "calendar_event_id": "{{14.id}}"
+                            },
+                            "metadata": {
+                                "designer": {
+                                    "x": 1800,
+                                    "y": 0
+                                }
+                            }
+                        }
+                    ]
+                },
+                {
+                    "flow": [
+                        {
+                            "id": 11,
+                            "module": "datastore:SearchRecord",
+                            "version": 1,
+                            "parameters": {
+                                "limit": 5,
+                                "datastore": 97467,
+                                "continueWhenNoRes": false
+                            },
+                            "filter": {
+                                "name": "Is RSVP decline",
+                                "conditions": [
+                                    [
+                                        {
+                                            "a": "{{parseJSON(2.data.content[1].text).type}}",
+                                            "b": "calendar_decline",
+                                            "o": "text:equal"
+                                        }
+                                    ]
+                                ]
+                            },
+                            "mapper": {
+                                "sort": [],
+                                "filter": [
+                                    [
+                                        {
+                                            "a": "is_booked",
+                                            "b": "{{false}}",
+                                            "o": "boolean:equal"
+                                        },
+                                        {
+                                            "a": "slot_datetime",
+                                            "b": "{{now}}",
+                                            "o": "date:greaterThan"
+                                        }
+                                    ]
+                                ],
+                                "mappAbleLimit": ""
+                            },
+                            "metadata": {
+                                "designer": {
+                                    "x": 900,
+                                    "y": 300
+                                },
+                                "restore": {
+                                    "parameters": {
+                                        "datastore": {
+                                            "label": "Indeed_Interview_Slots"
+                                        }
+                                    }
+                                }
+                            }
+                        },
+                        {
+                            "id": 12,
+                            "module": "util:TextAggregator",
+                            "version": 1,
+                            "parameters": {
+                                "feeder": 11,
+                                "rowSeparator": "other",
+                                "otherRowSeparator": ""
+                            },
+                            "mapper": {
+                                "value": "<li style=\"margin:6px 0;\"><strong>{{formatDate(11.data.slot_datetime; \"dddd, MMMM D\"; \"America/Vancouver\")}}</strong> at {{formatDate(11.data.slot_datetime; \"h:mm A\"; \"America/Vancouver\")}} Pacific time</li>",
+                                "rowSeparator": "other",
+                                "otherRowSeparator": ""
+                            },
+                            "metadata": {
+                                "designer": {
+                                    "x": 1200,
+                                    "y": 300
+                                },
+                                "restore": {
+                                    "extra": {
+                                        "feeder": {
+                                            "label": "Data store - Search records [11]"
+                                        }
+                                    },
+                                    "parameters": {
+                                        "rowSeparator": {
+                                            "label": "Other"
+                                        }
+                                    }
+                                }
+                            }
+                        },
+                        {
+                            "id": 13,
+                            "module": "google-email:sendAnEmail",
+                            "version": 4,
+                            "parameters": {
+                                "__IMTCONN__": 8323025
+                            },
+                            "filter": {
+                                "name": "Slots available",
+                                "conditions": [
+                                    [
+                                        {
+                                            "a": "{{12.text}}",
+                                            "b": "",
+                                            "o": "text:notequal"
+                                        }
+                                    ]
+                                ]
+                            },
+                            "mapper": {
+                                "cc": [],
+                                "to": [
+                                    "{{1.from[1].email}}"
+                                ],
+                                "bcc": [],
+                                "from": "karan9463verma@gmail.com",
+                                "html": "<div style=\"font-family:Arial,sans-serif;max-width:600px;margin:0 auto;padding:32px 24px;\"><p style=\"font-size:16px;color:#333;\">Hi <strong>{{trim(replace(1.subject; \"/^Declined: Interview — (.+?) \\\\| .+$/\"; \"$1\"))}}</strong>,</p><p style=\"font-size:15px;color:#444;line-height:1.7;\">We noticed you weren't able to make the scheduled interview — completely understandable, life happens!</p><p style=\"font-size:15px;color:#444;line-height:1.7;\">We'd genuinely love to meet you. Here are our next <strong>available slots</strong>:</p><div style=\"background:#f5f7ff;border-left:4px solid #1a2744;padding:16px 20px;border-radius:4px;margin:20px 0;\"><p style=\"margin:0 0 10px;font-weight:bold;color:#1a2744;\">📅 Available Interview Times:</p><ul style=\"margin:0;padding-left:20px;color:#333;\">{{12.text}}</ul></div><p style=\"font-size:15px;color:#444;line-height:1.7;\">Our interview hours are <strong>Monday to Friday, 1:00 PM – 2:30 PM Pacific time</strong>.</p><p style=\"font-size:15px;color:#444;line-height:1.7;\">Just <strong>reply to this email</strong> with the time that works best and we'll book you right away!</p><br><p style=\"color:#666;font-size:14px;\">Warm regards,<br><strong>Karan Verma</strong><br>Nexa Marketing Inc.</p></div>",
+                                "subject": "We'd love to still meet you — Let's find a time that works!",
+                                "attachments": [],
+                                "contentType": "html"
+                            },
+                            "metadata": {
+                                "designer": {
+                                    "x": 1500,
+                                    "y": 300
+                                }
+                            }
+                        }
+                    ]
+                }
+            ]
+        }
+    ],
+    "metadata": {
+        "instant": true,
+        "version": 1,
+        "scenario": {
+            "roundtrips": 1,
+            "maxErrors": 3,
+            "autoCommit": true,
+            "autoCommitTriggerLast": true,
+            "sequential": true,
+            "slots": null,
+            "confidential": false,
+            "dataloss": false,
+            "dlq": false,
+            "freshVariables": false
+        },
+        "designer": {
+            "orphans": []
+        },
+        "zone": "us2.make.com",
+        "notes": []
+    }
+}

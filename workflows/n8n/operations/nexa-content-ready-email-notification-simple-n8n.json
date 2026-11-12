@@ -1,0 +1,106 @@
+{
+  "name": "Nexa - Content Ready Email Notification",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "nexa-content-ready-email-notification",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "webhook-content-ready-email",
+      "name": "Webhook - Content Ready Email",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1.1,
+      "position": [
+        220,
+        300
+      ],
+      "webhookId": "nexa-content-ready-email-notification"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://services.leadconnectorhq.com/conversations/messages",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "Bearer YOUR_API_TOKEN_HERE"
+            },
+            {
+              "name": "Version",
+              "value": "2021-07-28"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "contentType": "json",
+        "jsonBody": "={{ {\n  type: 'Email',\n  contactId: 'gQhb5JvGathC8UfA9QzS',\n  locationId: 'NRcuWE1OyAEdoOmZqjpu',\n  emailFrom: 'karan@thenexaconsultancy.com',\n  emailFromName: 'Nexa System',\n  emailReplyTo: 'karan@thenexaconsultancy.com',\n  subject: $('Webhook - Content Ready Email').item.json.body?.subject || $('Webhook - Content Ready Email').item.json.subject,\n  html: $('Webhook - Content Ready Email').item.json.body?.body || $('Webhook - Content Ready Email').item.json.body\n} }}",
+        "options": {}
+      },
+      "id": "ghl-send-content-ready-email",
+      "name": "GHL - Send Content Ready Email",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        520,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ { success: true, message: 'Content ready email sent', ghlResponse: $json } }}",
+        "options": {}
+      },
+      "id": "respond-success",
+      "name": "Respond - Success",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [
+        820,
+        300
+      ]
+    }
+  ],
+  "connections": {
+    "Webhook - Content Ready Email": {
+      "main": [
+        [
+          {
+            "node": "GHL - Send Content Ready Email",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "GHL - Send Content Ready Email": {
+      "main": [
+        [
+          {
+            "node": "Respond - Success",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "pinData": {},
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "staticData": null,
+  "tags": [],
+  "triggerCount": 1,
+  "updatedAt": "2026-06-09T00:00:00.000Z",
+  "versionId": "simple-nexa-content-ready-email-notification-v1",
+  "active": false
+}

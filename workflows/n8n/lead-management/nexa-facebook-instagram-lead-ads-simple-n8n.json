@@ -1,0 +1,139 @@
+{
+  "name": "Nexa - Facebook & Instagram Lead Ads",
+  "nodes": [
+    {
+      "parameters": {
+        "page": {
+          "__rl": true,
+          "value": "888117071052475",
+          "mode": "list",
+          "cachedResultName": "Nexa Consultancy (Surrey)"
+        },
+        "form": {
+          "__rl": true,
+          "value": "960295313654553",
+          "mode": "list",
+          "cachedResultName": "Untitled form 4/10/26, 4:33 PM"
+        },
+        "options": []
+      },
+      "id": "facebook-lead-ads-trigger",
+      "name": "Facebook Lead Ads Trigger",
+      "type": "n8n-nodes-base.facebookLeadAdsTrigger",
+      "typeVersion": 1,
+      "position": [
+        0,
+        180
+      ],
+      "webhookId": "nexa-facebook-lead-ads"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://hook.us2.make.com/jxrru2vn50m9xolijdpzrrghg6gja602",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "contentType": "json",
+        "specifyBody": "json",
+        "jsonBody": "={{ { first_name: $json.first_name || $json.data?.first_name || (($json.full_name || $json.data?.full_name || '').split(' ')[0]), last_name: $json.last_name || $json.data?.last_name || (($json.full_name || $json.data?.full_name || '').split(' ').slice(1).join(' ')), email: $json.email || $json.data?.email, phone: $json.phone_number || $json.phone || $json.data?.phone_number || $json.data?.phone, loan_type: $json.loan_type || $json.data?.loan_type, lead_source: 'Facebook Lead Ad' } }}",
+        "options": {}
+      },
+      "id": "send-facebook-lead-to-capture",
+      "name": "Send Facebook Lead to Capture Hook",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        300,
+        180
+      ]
+    },
+    {
+      "parameters": {
+        "page": {
+          "__rl": true,
+          "value": "17841479000878995",
+          "mode": "list",
+          "cachedResultName": "nexaconsultancy.official (Instagram)"
+        },
+        "options": []
+      },
+      "id": "instagram-lead-ads-trigger",
+      "name": "Instagram Lead Ads Trigger",
+      "type": "n8n-nodes-base.facebookLeadAdsTrigger",
+      "typeVersion": 1,
+      "position": [
+        0,
+        440
+      ],
+      "webhookId": "nexa-instagram-lead-ads"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://hook.us2.make.com/jxrru2vn50m9xolijdpzrrghg6gja602",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "contentType": "json",
+        "specifyBody": "json",
+        "jsonBody": "={{ { first_name: $json.first_name || $json.data?.first_name || (($json.full_name || $json.data?.full_name || '').split(' ')[0]), last_name: $json.last_name || $json.data?.last_name || (($json.full_name || $json.data?.full_name || '').split(' ').slice(1).join(' ')), email: $json.email || $json.data?.email, phone: $json.phone_number || $json.phone || $json.data?.phone_number || $json.data?.phone, loan_type: $json.loan_type || $json.data?.loan_type, lead_source: 'Instagram Lead Ad' } }}",
+        "options": {}
+      },
+      "id": "send-instagram-lead-to-capture",
+      "name": "Send Instagram Lead to Capture Hook",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        300,
+        440
+      ]
+    }
+  ],
+  "connections": {
+    "Facebook Lead Ads Trigger": {
+      "main": [
+        [
+          {
+            "node": "Send Facebook Lead to Capture Hook",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Instagram Lead Ads Trigger": {
+      "main": [
+        [
+          {
+            "node": "Send Instagram Lead to Capture Hook",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "pinData": {},
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "staticData": null,
+  "tags": [],
+  "triggerCount": 0
+}

@@ -1,0 +1,265 @@
+{
+  "name": "Indeed - Interview Scheduler",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "indeed-interview-scheduler",
+        "responseMode": "onReceived",
+        "options": {}
+      },
+      "id": "webhook-indeed-interview-scheduler",
+      "name": "Webhook - Indeed Interview Scheduler",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1.1,
+      "position": [
+        220,
+        300
+      ],
+      "webhookId": "indeed-interview-scheduler"
+    },
+    {
+      "parameters": {
+        "resource": "table",
+        "operation": "create",
+        "tableName": "Indeed Interview Slots",
+        "columns": {
+          "column": [
+            {
+              "name": "slot_datetime",
+              "type": "date"
+            },
+            {
+              "name": "is_booked",
+              "type": "boolean"
+            },
+            {
+              "name": "job_title",
+              "type": "string"
+            },
+            {
+              "name": "candidate_name",
+              "type": "string"
+            },
+            {
+              "name": "candidate_email",
+              "type": "string"
+            },
+            {
+              "name": "booking_date",
+              "type": "date"
+            },
+            {
+              "name": "calendar_event_id",
+              "type": "string"
+            },
+            {
+              "name": "rsvp_accepted",
+              "type": "boolean"
+            },
+            {
+              "name": "nudge_sent",
+              "type": "boolean"
+            },
+            {
+              "name": "follow_up_1_sent",
+              "type": "boolean"
+            },
+            {
+              "name": "follow_up_2_sent",
+              "type": "boolean"
+            },
+            {
+              "name": "follow_up_3_sent",
+              "type": "boolean"
+            },
+            {
+              "name": "reminder_1hr_sent",
+              "type": "boolean"
+            },
+            {
+              "name": "reminder_4hr_sent",
+              "type": "boolean"
+            },
+            {
+              "name": "reminder_day_sent",
+              "type": "boolean"
+            }
+          ]
+        },
+        "options": {
+          "createIfNotExists": true
+        }
+      },
+      "id": "data-table-ensure-interview-slots",
+      "name": "Data Table - Ensure Interview Slots",
+      "type": "n8n-nodes-base.dataTable",
+      "typeVersion": 1.1,
+      "position": [
+        500,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "get",
+        "dataTableId": {
+          "__rl": true,
+          "value": "Indeed Interview Slots",
+          "mode": "name",
+          "cachedResultName": "Indeed Interview Slots"
+        },
+        "matchType": "allConditions",
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "is_booked",
+              "condition": "eq",
+              "keyValue": false
+            },
+            {
+              "keyName": "slot_datetime",
+              "condition": "gt",
+              "keyValue": "={{ $now.toISO() }}"
+            }
+          ]
+        },
+        "returnAll": false,
+        "limit": 1
+      },
+      "id": "data-table-find-open-slot",
+      "name": "Data Table - Find Open Slot",
+      "type": "n8n-nodes-base.dataTable",
+      "typeVersion": 1.1,
+      "position": [
+        780,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "dataTableId": {
+          "__rl": true,
+          "value": "Indeed Interview Slots",
+          "mode": "name",
+          "cachedResultName": "Indeed Interview Slots"
+        },
+        "matchType": "allConditions",
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "id",
+              "condition": "eq",
+              "keyValue": "={{ $('Data Table - Find Open Slot').item.json.id }}"
+            }
+          ]
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "is_booked": true,
+            "job_title": "={{ $('Webhook - Indeed Interview Scheduler').item.json.body?.role_applying_for || $('Webhook - Indeed Interview Scheduler').item.json.role_applying_for }}",
+            "nudge_sent": false,
+            "booking_date": "={{ $now.toISO() }}",
+            "rsvp_accepted": false,
+            "candidate_name": "={{ $('Webhook - Indeed Interview Scheduler').item.json.body?.applicant_name || $('Webhook - Indeed Interview Scheduler').item.json.applicant_name }}",
+            "candidate_email": "={{ $('Webhook - Indeed Interview Scheduler').item.json.body?.applicant_email || $('Webhook - Indeed Interview Scheduler').item.json.applicant_email }}",
+            "follow_up_1_sent": false,
+            "follow_up_2_sent": false,
+            "follow_up_3_sent": false
+          },
+          "matchingColumns": [],
+          "schema": []
+        },
+        "options": {}
+      },
+      "id": "data-table-book-slot",
+      "name": "Data Table - Book Slot",
+      "type": "n8n-nodes-base.dataTable",
+      "typeVersion": 1.1,
+      "position": [
+        1060,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "resource": "message",
+        "operation": "send",
+        "sendTo": "={{ $('Webhook - Indeed Interview Scheduler').item.json.body?.applicant_email || $('Webhook - Indeed Interview Scheduler').item.json.applicant_email }}",
+        "subject": "={{ 'Interview Confirmed - ' + ($('Webhook - Indeed Interview Scheduler').item.json.body?.role_applying_for || $('Webhook - Indeed Interview Scheduler').item.json.role_applying_for) + ' at Nexa Marketing Inc.' }}",
+        "emailType": "html",
+        "message": "={{ '<p>Hi ' + ($('Webhook - Indeed Interview Scheduler').item.json.body?.applicant_name || $('Webhook - Indeed Interview Scheduler').item.json.applicant_name) + ',</p><p>Your interview for <strong>' + ($('Webhook - Indeed Interview Scheduler').item.json.body?.role_applying_for || $('Webhook - Indeed Interview Scheduler').item.json.role_applying_for) + '</strong> at Nexa Marketing Inc. is confirmed!</p><p><strong>Date:</strong> ' + DateTime.fromISO($('Data Table - Find Open Slot').item.json.slot_datetime).setZone('America/Vancouver').toFormat('cccc, LLLL d, yyyy') + '<br><strong>Time:</strong> ' + DateTime.fromISO($('Data Table - Find Open Slot').item.json.slot_datetime).setZone('America/Vancouver').toFormat('h:mm a') + ' Pacific Time<br><strong>Duration:</strong> 30 minutes<br><strong>Location:</strong> 12899 80 Ave #203, Surrey, BC V3W 0E6</p><p>Please <strong>reply to this email</strong> to confirm your attendance. You will also receive reminders before your interview.</p><p>Need to reschedule? Just reply to this email and we will sort it out!</p><p>Looking forward to meeting you!<br><br><strong>Karan Verma</strong><br>Nexa Marketing Inc.</p>' }}",
+        "options": {
+          "senderName": "Karan Verma",
+          "appendAttribution": false
+        }
+      },
+      "id": "gmail-send-interview-confirmation",
+      "name": "Gmail - Send Interview Confirmation",
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [
+        1340,
+        300
+      ]
+    }
+  ],
+  "connections": {
+    "Webhook - Indeed Interview Scheduler": {
+      "main": [
+        [
+          {
+            "node": "Data Table - Ensure Interview Slots",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Data Table - Ensure Interview Slots": {
+      "main": [
+        [
+          {
+            "node": "Data Table - Find Open Slot",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Data Table - Find Open Slot": {
+      "main": [
+        [
+          {
+            "node": "Data Table - Book Slot",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Data Table - Book Slot": {
+      "main": [
+        [
+          {
+            "node": "Gmail - Send Interview Confirmation",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "pinData": {},
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "staticData": null,
+  "tags": [],
+  "triggerCount": 1,
+  "updatedAt": "2026-06-09T00:00:00.000Z",
+  "versionId": "simple-indeed-interview-scheduler-v1",
+  "active": false
+}

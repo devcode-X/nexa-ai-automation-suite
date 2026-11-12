@@ -1,0 +1,140 @@
+{
+    "name": "Indeed — Interview Scheduler",
+    "flow": [
+        {
+            "id": 1,
+            "module": "gateway:CustomWebHook",
+            "version": 1,
+            "parameters": {
+                "hook": 2265058,
+                "maxResults": 1
+            },
+            "mapper": {},
+            "metadata": {
+                "designer": {
+                    "x": 0,
+                    "y": 0
+                }
+            }
+        },
+        {
+            "id": 2,
+            "module": "datastore:SearchRecord",
+            "version": 1,
+            "parameters": {
+                "dataStoreId": 97467
+            },
+            "mapper": {
+                "max": 1,
+                "filter": {
+                    "conditions": [
+                        [
+                            {
+                                "a": "{{data.is_booked}}",
+                                "b": false,
+                                "o": "boolean:equal"
+                            },
+                            {
+                                "a": "{{data.slot_datetime}}",
+                                "b": "{{now}}",
+                                "o": "date:greaterThan"
+                            }
+                        ]
+                    ]
+                }
+            },
+            "metadata": {
+                "designer": {
+                    "x": 300,
+                    "y": 0
+                }
+            }
+        },
+        {
+            "id": 3,
+            "module": "datastore:UpdateRecord",
+            "version": 1,
+            "parameters": {
+                "dataStoreId": 97467
+            },
+            "filter": {
+                "name": "Slot found",
+                "conditions": [
+                    [
+                        {
+                            "a": "{{2.key}}",
+                            "b": "",
+                            "o": "text:notEqual"
+                        }
+                    ]
+                ]
+            },
+            "mapper": {
+                "key": "{{2.key}}",
+                "is_booked": true,
+                "job_title": "{{1.role_applying_for}}",
+                "nudge_sent": false,
+                "booking_date": "{{now}}",
+                "rsvp_accepted": false,
+                "candidate_name": "{{1.applicant_name}}",
+                "candidate_email": "{{1.applicant_email}}",
+                "follow_up_1_sent": false,
+                "follow_up_2_sent": false,
+                "follow_up_3_sent": false
+            },
+            "metadata": {
+                "designer": {
+                    "x": 600,
+                    "y": 0
+                }
+            }
+        },
+        {
+            "id": 6,
+            "module": "google-email:sendAnEmail",
+            "version": 4,
+            "parameters": {
+                "__IMTCONN__": 8323025
+            },
+            "mapper": {
+                "cc": [],
+                "to": [
+                    "{{1.applicant_email}}"
+                ],
+                "bcc": [],
+                "from": "karan9463verma@gmail.com",
+                "html": "<p>Hi {{1.applicant_name}},</p><p>Your interview for <strong>{{1.role_applying_for}}</strong> at Nexa Marketing Inc. is confirmed!</p><p><strong>📅 Date:</strong> {{formatDate(2.data.slot_datetime; \"dddd, MMMM D, YYYY\"; \"America/Vancouver\")}}<br><strong>🕐 Time:</strong> {{formatDate(2.data.slot_datetime; \"h:mm A\"; \"America/Vancouver\")}} Pacific Time<br><strong>⏱ Duration:</strong> 30 minutes<br><strong>📍 Location:</strong> 12899 80 Ave #203, Surrey, BC V3W 0E6</p><p>Please <strong>reply to this email</strong> to confirm your attendance. You will also receive reminders before your interview.</p><p>Need to reschedule? Just reply to this email and we will sort it out!</p><p>Looking forward to meeting you!<br><br><strong>Karan Verma</strong><br>Nexa Marketing Inc.</p>",
+                "subject": "Interview Confirmed — {{1.role_applying_for}} at Nexa Marketing Inc.",
+                "attachments": [],
+                "contentType": "html"
+            },
+            "metadata": {
+                "designer": {
+                    "x": 900,
+                    "y": 0
+                }
+            }
+        }
+    ],
+    "metadata": {
+        "instant": true,
+        "version": 1,
+        "scenario": {
+            "roundtrips": 1,
+            "maxErrors": 3,
+            "autoCommit": true,
+            "autoCommitTriggerLast": true,
+            "sequential": true,
+            "slots": null,
+            "confidential": false,
+            "dataloss": false,
+            "dlq": false,
+            "freshVariables": false
+        },
+        "designer": {
+            "orphans": []
+        },
+        "zone": "us2.make.com",
+        "notes": []
+    }
+}

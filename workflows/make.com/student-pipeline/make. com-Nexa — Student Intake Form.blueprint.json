@@ -1,0 +1,178 @@
+{
+    "name": "Nexa — Student Intake Form",
+    "flow": [
+        {
+            "id": 1,
+            "module": "gateway:CustomWebHook",
+            "version": 1,
+            "parameters": {
+                "hook": 2196884,
+                "maxResults": 1
+            },
+            "mapper": {},
+            "metadata": {
+                "designer": {
+                    "x": 0,
+                    "y": 0
+                }
+            }
+        },
+        {
+            "id": 2,
+            "module": "http:ActionSendData",
+            "version": 3,
+            "parameters": {
+                "handleErrors": false,
+                "useNewZLibDeCompress": true
+            },
+            "mapper": {
+                "url": "https://services.leadconnectorhq.com/contacts/upsert",
+                "data": "{\"locationId\":\"NRcuWE1OyAEdoOmZqjpu\",\"email\":\"{{1.primary.email}}\",\"firstName\":\"{{1.primary.name}}\",\"phone\":\"{{1.primary.phone}}\",\"address1\":\"{{1.primary.address}}\",\"dateOfBirth\":\"{{1.primary.dob}}\",\"tags\":[\"student-lead\",\"from-affiliate-{{1.affiliate}}\",\"source-doorstep-intake\"],\"customFields\":[{\"key\":\"case_id\",\"field_value\":\"{{1.caseId}}\"},{\"key\":\"intake_source\",\"field_value\":\"doorstep\"},{\"key\":\"student_sin\",\"field_value\":\"{{1.primary.sin}}\"},{\"key\":\"student_citizenship\",\"field_value\":\"{{1.primary.citizen}}\"},{\"key\":\"marital_status\",\"field_value\":\"{{1.marital}}\"},{\"key\":\"id1_type\",\"field_value\":\"{{1.id1.type}}\"},{\"key\":\"id1_number\",\"field_value\":\"{{1.id1.number}}\"},{\"key\":\"id2_type\",\"field_value\":\"{{1.id2.type}}\"},{\"key\":\"education_doc\",\"field_value\":\"{{1.education_doc}}\"},{\"key\":\"course_selected\",\"field_value\":\"{{1.course}}\"},{\"key\":\"fee_plan_summary\",\"field_value\":\"{{1.fee_summary}}\"},{\"key\":\"spouse_name\",\"field_value\":\"{{1.spouse.name}}\"},{\"key\":\"spouse_email\",\"field_value\":\"{{1.spouse.email}}\"},{\"key\":\"spouse_phone\",\"field_value\":\"{{1.spouse.phone}}\"},{\"key\":\"spouse_dob\",\"field_value\":\"{{1.spouse.dob}}\"},{\"key\":\"spouse_sin\",\"field_value\":\"{{1.spouse.sin}}\"},{\"key\":\"intake_note\",\"field_value\":\"{{1.note}}\"}]}",
+                "gzip": true,
+                "method": "post",
+                "headers": [
+                    {
+                        "name": "Authorization",
+                        "value": "Bearer YOUR_API_TOKEN_HERE"
+                    },
+                    {
+                        "name": "Version",
+                        "value": "2021-07-28"
+                    },
+                    {
+                        "name": "Content-Type",
+                        "value": "application/json"
+                    },
+                    {
+                        "name": "Accept",
+                        "value": "application/json"
+                    }
+                ],
+                "useMtls": false,
+                "bodyType": "raw",
+                "contentType": "application/json",
+                "serializeUrl": false,
+                "shareCookies": false,
+                "parseResponse": true,
+                "followRedirect": true,
+                "useQuerystring": false,
+                "rejectUnauthorized": true
+            },
+            "metadata": {
+                "designer": {
+                    "x": 300,
+                    "y": 0
+                }
+            }
+        },
+        {
+            "id": 4,
+            "module": "http:ActionSendData",
+            "version": 3,
+            "parameters": {
+                "handleErrors": false,
+                "useNewZLibDeCompress": true
+            },
+            "mapper": {
+                "url": "https://services.leadconnectorhq.com/contacts/{{2.data.contact.id}}/notes",
+                "data": "{\"body\":\"===== APPENDIX 1 (Parents / Sponsor) =====\\n{{1.appendix1}}\\n\\n===== APPENDIX 2 (Spouse) =====\\n{{1.appendix2}}\",\"userId\":\"karan\"}",
+                "gzip": true,
+                "method": "post",
+                "headers": [
+                    {
+                        "name": "Authorization",
+                        "value": "Bearer YOUR_API_TOKEN_HERE"
+                    },
+                    {
+                        "name": "Version",
+                        "value": "2021-07-28"
+                    },
+                    {
+                        "name": "Content-Type",
+                        "value": "application/json"
+                    }
+                ],
+                "useMtls": false,
+                "bodyType": "raw",
+                "contentType": "application/json",
+                "serializeUrl": false,
+                "shareCookies": false,
+                "parseResponse": true,
+                "followRedirect": true,
+                "useQuerystring": false,
+                "rejectUnauthorized": true
+            },
+            "metadata": {
+                "designer": {
+                    "x": 600,
+                    "y": 0
+                }
+            }
+        },
+        {
+            "id": 3,
+            "module": "http:ActionSendData",
+            "version": 3,
+            "parameters": {
+                "handleErrors": false,
+                "useNewZLibDeCompress": true
+            },
+            "mapper": {
+                "url": "https://services.leadconnectorhq.com/conversations/messages",
+                "data": "{\"type\":\"Email\",\"contactId\":\"{{2.data.contact.id}}\",\"subject\":\"New Client: {{1.primary.name}} — {{1.caseId}}\",\"html\":\"<h2>New Client Submission</h2><p>Case ID: {{1.caseId}} | Affiliate: {{1.affiliate}}</p><p>Name: {{1.primary.name}}<br>Email: {{1.primary.email}}<br>Phone: {{1.primary.phone}}<br>Address: {{1.primary.address}}</p><p>ID 1: {{1.id1.type}} — {{1.id1.number}}<br>ID 2: {{1.id2.type}}</p><p>Education: {{1.education_doc}}</p><p>Course: {{1.course}}<br>Fee Plan: {{1.fee.plan}}<br>Total: ${{1.fee.total}}<br>Upfront: {{1.fee.upfront}}% at enrollment<br>Balance: {{1.fee.balance}}% at month {{1.fee.month}}</p>\"}",
+                "gzip": true,
+                "method": "post",
+                "headers": [
+                    {
+                        "name": "Authorization",
+                        "value": "Bearer YOUR_API_TOKEN_HERE"
+                    },
+                    {
+                        "name": "Version",
+                        "value": "2021-07-28"
+                    },
+                    {
+                        "name": "Content-Type",
+                        "value": "application/json"
+                    }
+                ],
+                "useMtls": false,
+                "bodyType": "raw",
+                "contentType": "application/json",
+                "serializeUrl": false,
+                "shareCookies": false,
+                "parseResponse": true,
+                "followRedirect": true,
+                "useQuerystring": false,
+                "rejectUnauthorized": true
+            },
+            "metadata": {
+                "designer": {
+                    "x": 900,
+                    "y": 0
+                }
+            }
+        }
+    ],
+    "metadata": {
+        "instant": true,
+        "version": 1,
+        "scenario": {
+            "roundtrips": 1,
+            "maxErrors": 3,
+            "autoCommit": true,
+            "autoCommitTriggerLast": true,
+            "sequential": false,
+            "slots": null,
+            "confidential": false,
+            "dataloss": false,
+            "dlq": false,
+            "freshVariables": false
+        },
+        "designer": {
+            "orphans": []
+        },
+        "zone": "us2.make.com",
+        "notes": []
+    }
+}

@@ -1,0 +1,175 @@
+{
+  "name": "Nexa - AI Lead Qualifier",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "nexa-ai-lead-qualifier",
+        "responseMode": "onReceived",
+        "options": {}
+      },
+      "id": "webhook-ai-lead-qualifier",
+      "name": "Webhook - AI Lead Qualifier",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        0,
+        300
+      ],
+      "webhookId": "nexa-ai-lead-qualifier"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.anthropic.com/v1/messages",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "x-api-key",
+              "value": "sk-ant-REDACTED_REPLACE_WITH_YOUR_KEY"
+            },
+            {
+              "name": "anthropic-version",
+              "value": "2023-06-01"
+            },
+            {
+              "name": "content-type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "contentType": "json",
+        "specifyBody": "json",
+        "jsonBody": "={{ { model: 'claude-haiku-4-5-20251001', max_tokens: 1024, messages: [{ role: 'user', content: 'You are Nexa Consultancy AI Receptionist qualifying leads for Student Aid BC funding (up to $60K single or $120K couple at 0% interest for skill upgrades in BC). Lead data: name=' + ($json.body?.name || $json.name) + ', email=' + ($json.body?.email || $json.email) + ', phone=' + ($json.body?.phone || $json.phone) + ', immigration_status=' + ($json.body?.immigration_status || $json.immigration_status) + ', employment=' + ($json.body?.employment_status || $json.employment_status) + ', annual_income=' + ($json.body?.annual_income || $json.annual_income) + ', province=' + ($json.body?.province || $json.province) + ', notes=' + ($json.body?.notes || $json.notes) + '. ELIGIBILITY: ELIGIBLE if BC resident AND Canadian Citizen or Permanent Resident or Protected Person AND has income source. INELIGIBLE if visitor visa or study permit only or outside BC or zero income. MAYBE if unclear. TIER: HOT if ready to apply now, WARM if needs more info, COLD if not ready. Write a warm professional email to the lead. Return ONLY a valid JSON object with no markdown, no explanation, containing: eligibility (ELIGIBLE or INELIGIBLE or MAYBE), tier (HOT or WARM or COLD), eligible_amount (60000 for single eligible, 120000 for couple eligible, 0 for ineligible), recipient_email (the lead email), email_subject (subject line), email_html (full HTML email body), karan_alert (one-line summary: Tier-Name-Status-EstAmount-RecommendedAction).' }] } }}",
+        "options": {}
+      },
+      "id": "anthropic-qualify-lead",
+      "name": "Anthropic - Qualify Lead",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        280,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const response = $input.first().json || {}; const content = response.body?.content || response.content || []; const text = content[1]?.text || content[0]?.text || response.text || response.body?.text || ''; const cleaned = String(text).trim().replace(/^```json\\s*/i, '').replace(/^```\\s*/i, '').replace(/```$/i, '').trim(); const parsed = JSON.parse(cleaned); return [{ json: parsed }];"
+      },
+      "id": "parse-qualification-json",
+      "name": "Parse Qualification JSON",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        560,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "resource": "message",
+        "operation": "send",
+        "sendTo": "={{ $json.recipient_email }}",
+        "subject": "={{ $json.email_subject }}",
+        "emailType": "html",
+        "message": "={{ $json.email_html }}",
+        "options": {
+          "senderName": "Karan Verma",
+          "appendAttribution": false
+        }
+      },
+      "id": "gmail-send-qualification-email",
+      "name": "Gmail - Send Qualification Email",
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [
+        840,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://hook.us2.make.com/cn424cy8r31gmmvq9b7bttiyyerbad1i",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "content-type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "contentType": "json",
+        "specifyBody": "json",
+        "jsonBody": "={{ { message: 'LEAD QUALIFIED\\n' + $('Parse Qualification JSON').item.json.karan_alert + '\\nEligibility: ' + $('Parse Qualification JSON').item.json.eligibility + ' | Tier: ' + $('Parse Qualification JSON').item.json.tier + ' | Amount: $' + $('Parse Qualification JSON').item.json.eligible_amount + '\\nEmail sent to: ' + $('Parse Qualification JSON').item.json.recipient_email, alert_type: 'lead_qualifier', data: {} } }}",
+        "options": {}
+      },
+      "id": "send-lead-qualification-alert",
+      "name": "Send Lead Qualification Alert",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1120,
+        300
+      ]
+    }
+  ],
+  "connections": {
+    "Webhook - AI Lead Qualifier": {
+      "main": [
+        [
+          {
+            "node": "Anthropic - Qualify Lead",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Anthropic - Qualify Lead": {
+      "main": [
+        [
+          {
+            "node": "Parse Qualification JSON",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Parse Qualification JSON": {
+      "main": [
+        [
+          {
+            "node": "Gmail - Send Qualification Email",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Gmail - Send Qualification Email": {
+      "main": [
+        [
+          {
+            "node": "Send Lead Qualification Alert",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "pinData": {},
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "staticData": null,
+  "tags": [],
+  "triggerCount": 0
+}

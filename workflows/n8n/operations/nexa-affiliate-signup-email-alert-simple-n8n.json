@@ -1,0 +1,93 @@
+{
+  "name": "Nexa - Affiliate Signup Email Alert",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "nexa-affiliate-signup-email-alert",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "webhook-affiliate-signup",
+      "name": "Webhook - Affiliate Signup",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1.1,
+      "position": [
+        220,
+        300
+      ],
+      "webhookId": "nexa-affiliate-signup-email-alert"
+    },
+    {
+      "parameters": {
+        "resource": "message",
+        "operation": "send",
+        "sendTo": "karan9463verma@gmail.com",
+        "subject": "={{ 'New Nexa Affiliate Signup: ' + ($('Webhook - Affiliate Signup').item.json.body?.affiliate?.name || $('Webhook - Affiliate Signup').item.json.affiliate?.name || '') + ' (' + ($('Webhook - Affiliate Signup').item.json.body?.affiliate?.code || $('Webhook - Affiliate Signup').item.json.affiliate?.code || '') + ')' }}",
+        "emailType": "html",
+        "message": "={{ '<h2>New Affiliate Signup</h2><p><b>Name:</b> ' + ($('Webhook - Affiliate Signup').item.json.body?.affiliate?.name || $('Webhook - Affiliate Signup').item.json.affiliate?.name || '') + '<br><b>Code:</b> ' + ($('Webhook - Affiliate Signup').item.json.body?.affiliate?.code || $('Webhook - Affiliate Signup').item.json.affiliate?.code || '') + '<br><b>Email:</b> ' + ($('Webhook - Affiliate Signup').item.json.body?.affiliate?.email || $('Webhook - Affiliate Signup').item.json.affiliate?.email || '') + '<br><b>Phone:</b> ' + ($('Webhook - Affiliate Signup').item.json.body?.affiliate?.phone || $('Webhook - Affiliate Signup').item.json.affiliate?.phone || '') + '<br><b>Tier:</b> ' + ($('Webhook - Affiliate Signup').item.json.body?.affiliate?.tier || $('Webhook - Affiliate Signup').item.json.affiliate?.tier || '') + '<br><b>Is sub-agent:</b> ' + ($('Webhook - Affiliate Signup').item.json.body?.is_sub_agent ?? $('Webhook - Affiliate Signup').item.json.is_sub_agent ?? '') + '<br><b>Parent code:</b> ' + ($('Webhook - Affiliate Signup').item.json.body?.parent_code || $('Webhook - Affiliate Signup').item.json.parent_code || '') + '<br><b>Source:</b> ' + ($('Webhook - Affiliate Signup').item.json.body?.source || $('Webhook - Affiliate Signup').item.json.source || '') + '<br><b>Timestamp:</b> ' + ($('Webhook - Affiliate Signup').item.json.body?.ts || $('Webhook - Affiliate Signup').item.json.ts || '') + '</p><p>Referral link: <code>https://partners.thenexaconsultancy.com/apply?ref=' + ($('Webhook - Affiliate Signup').item.json.body?.affiliate?.code || $('Webhook - Affiliate Signup').item.json.affiliate?.code || '') + '</code></p>' }}",
+        "options": {
+          "senderName": "Nexa Affiliate Alerts",
+          "appendAttribution": false
+        }
+      },
+      "id": "gmail-send-affiliate-signup-alert",
+      "name": "Gmail - Send Affiliate Signup Alert",
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [
+        520,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ { success: true, message: 'Affiliate signup alert sent', affiliateCode: $('Webhook - Affiliate Signup').item.json.body?.affiliate?.code || $('Webhook - Affiliate Signup').item.json.affiliate?.code || '' } }}",
+        "options": {}
+      },
+      "id": "respond-success",
+      "name": "Respond - Success",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [
+        820,
+        300
+      ]
+    }
+  ],
+  "connections": {
+    "Webhook - Affiliate Signup": {
+      "main": [
+        [
+          {
+            "node": "Gmail - Send Affiliate Signup Alert",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Gmail - Send Affiliate Signup Alert": {
+      "main": [
+        [
+          {
+            "node": "Respond - Success",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "pinData": {},
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "staticData": null,
+  "tags": [],
+  "triggerCount": 1,
+  "updatedAt": "2026-06-09T00:00:00.000Z",
+  "versionId": "simple-nexa-affiliate-signup-email-alert-v1",
+  "active": false
+}

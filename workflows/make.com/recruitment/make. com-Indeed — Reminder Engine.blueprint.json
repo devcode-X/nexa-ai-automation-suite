@@ -1,0 +1,349 @@
+{
+    "name": "Indeed — Reminder Engine",
+    "flow": [
+        {
+            "id": 1,
+            "module": "builtin:BasicRouter",
+            "version": 1,
+            "mapper": null,
+            "metadata": {
+                "designer": {
+                    "x": 0,
+                    "y": 0
+                }
+            },
+            "routes": [
+                {
+                    "flow": [
+                        {
+                            "id": 2,
+                            "module": "datastore:SearchRecord",
+                            "version": 1,
+                            "parameters": {
+                                "limit": 10,
+                                "datastore": 97467,
+                                "continueWhenNoRes": false
+                            },
+                            "mapper": {
+                                "sort": [],
+                                "filter": [
+                                    [
+                                        {
+                                            "a": "is_booked",
+                                            "b": true,
+                                            "o": "boolean:equal"
+                                        },
+                                        {
+                                            "a": "reminder_day_sent",
+                                            "b": true,
+                                            "o": "boolean:notequal"
+                                        },
+                                        {
+                                            "a": "slot_datetime",
+                                            "b": "{{addMinutes(now; 1380)}}",
+                                            "o": "date:greater"
+                                        },
+                                        {
+                                            "a": "slot_datetime",
+                                            "b": "{{addMinutes(now; 1440)}}",
+                                            "o": "date:less"
+                                        }
+                                    ]
+                                ],
+                                "mappAbleLimit": ""
+                            },
+                            "metadata": {
+                                "designer": {
+                                    "x": 300,
+                                    "y": -200
+                                },
+                                "restore": {
+                                    "parameters": {
+                                        "datastore": {
+                                            "label": "Indeed_Interview_Slots"
+                                        }
+                                    }
+                                }
+                            }
+                        },
+                        {
+                            "id": 3,
+                            "module": "google-email:sendAnEmail",
+                            "version": 4,
+                            "parameters": {
+                                "__IMTCONN__": 8323025
+                            },
+                            "mapper": {
+                                "cc": [],
+                                "to": [
+                                    "{{2.data.candidate_email}}"
+                                ],
+                                "bcc": [],
+                                "from": "karan9463verma@gmail.com",
+                                "html": "<div style=\"font-family:Arial,sans-serif;max-width:600px;margin:0 auto;padding:32px 24px;\"><p style=\"font-size:16px;color:#333;\">Hi <strong>{{2.data.candidate_name}}</strong>,</p><p style=\"font-size:15px;color:#444;line-height:1.7;\">This is a reminder that your interview for the <strong>{{2.data.job_title}}</strong> position is scheduled for <strong>tomorrow</strong>.</p><div style=\"background:#f5f7ff;border-left:4px solid #1a2744;padding:16px 20px;border-radius:4px;margin:20px 0;\"><p style=\"margin:0;color:#1a2744;\">&#128197; <strong>{{formatDate(2.data.slot_datetime; \"dddd, MMMM D, YYYY\"; \"America/Vancouver\")}}</strong><br>&#128336; <strong>{{formatDate(2.data.slot_datetime; \"h:mm A\"; \"America/Vancouver\")}} Pacific Time</strong><br>&#128205; 12899 80 Ave #203, Surrey, BC V3W 0E6</p></div><p style=\"font-size:15px;color:#444;\">Questions? Call <strong>778-582-4000</strong> or reply to this email. See you tomorrow!</p><br><p style=\"color:#666;font-size:14px;\">Best regards,<br><strong>Karan Verma</strong><br>Nexa Marketing Inc.</p></div>",
+                                "subject": "Reminder: Your Interview Tomorrow — {{2.data.job_title}}",
+                                "attachments": [],
+                                "contentType": "html"
+                            },
+                            "metadata": {
+                                "designer": {
+                                    "x": 600,
+                                    "y": -200
+                                }
+                            }
+                        },
+                        {
+                            "id": 4,
+                            "module": "datastore:UpdateRecord",
+                            "version": 1,
+                            "parameters": {
+                                "datastore": 97467
+                            },
+                            "mapper": {
+                                "key": "{{2.key}}",
+                                "data": {
+                                    "reminder_day_sent": true
+                                },
+                                "upsert": true,
+                                "overwriteArrays": false
+                            },
+                            "metadata": {
+                                "designer": {
+                                    "x": 900,
+                                    "y": -200
+                                }
+                            }
+                        }
+                    ]
+                },
+                {
+                    "flow": [
+                        {
+                            "id": 5,
+                            "module": "datastore:SearchRecord",
+                            "version": 1,
+                            "parameters": {
+                                "limit": 10,
+                                "datastore": 97467,
+                                "continueWhenNoRes": false
+                            },
+                            "mapper": {
+                                "sort": [],
+                                "filter": [
+                                    [
+                                        {
+                                            "a": "is_booked",
+                                            "b": true,
+                                            "o": "boolean:equal"
+                                        },
+                                        {
+                                            "a": "reminder_4hr_sent",
+                                            "b": true,
+                                            "o": "boolean:notequal"
+                                        },
+                                        {
+                                            "a": "slot_datetime",
+                                            "b": "{{addMinutes(now; 225)}}",
+                                            "o": "date:greater"
+                                        },
+                                        {
+                                            "a": "slot_datetime",
+                                            "b": "{{addMinutes(now; 255)}}",
+                                            "o": "date:less"
+                                        }
+                                    ]
+                                ],
+                                "mappAbleLimit": ""
+                            },
+                            "metadata": {
+                                "designer": {
+                                    "x": 300,
+                                    "y": 0
+                                },
+                                "restore": {
+                                    "parameters": {
+                                        "datastore": {
+                                            "label": "Indeed_Interview_Slots"
+                                        }
+                                    }
+                                }
+                            }
+                        },
+                        {
+                            "id": 6,
+                            "module": "google-email:sendAnEmail",
+                            "version": 4,
+                            "parameters": {
+                                "__IMTCONN__": 8323025
+                            },
+                            "mapper": {
+                                "cc": [],
+                                "to": [
+                                    "{{5.data.candidate_email}}"
+                                ],
+                                "bcc": [],
+                                "from": "karan9463verma@gmail.com",
+                                "html": "<div style=\"font-family:Arial,sans-serif;max-width:600px;margin:0 auto;padding:32px 24px;\"><p style=\"font-size:16px;color:#333;\">Hi <strong>{{5.data.candidate_name}}</strong>,</p><p style=\"font-size:15px;color:#444;line-height:1.7;\">This is a reminder that your interview for the <strong>{{5.data.job_title}}</strong> position starts in <strong>4 hours</strong>.</p><div style=\"background:#f5f7ff;border-left:4px solid #1a2744;padding:16px 20px;border-radius:4px;margin:20px 0;\"><p style=\"margin:0;color:#1a2744;\">&#128197; <strong>{{formatDate(5.data.slot_datetime; \"dddd, MMMM D, YYYY\"; \"America/Vancouver\")}}</strong><br>&#128336; <strong>{{formatDate(5.data.slot_datetime; \"h:mm A\"; \"America/Vancouver\")}} Pacific Time</strong><br>&#128205; 12899 80 Ave #203, Surrey, BC V3W 0E6</p></div><p style=\"font-size:15px;color:#444;\">Questions? Call <strong>778-582-4000</strong>. See you soon!</p><br><p style=\"color:#666;font-size:14px;\">Best regards,<br><strong>Karan Verma</strong><br>Nexa Marketing Inc.</p></div>",
+                                "subject": "Reminder: Your Interview in 4 Hours — {{5.data.job_title}}",
+                                "attachments": [],
+                                "contentType": "html"
+                            },
+                            "metadata": {
+                                "designer": {
+                                    "x": 600,
+                                    "y": 0
+                                }
+                            }
+                        },
+                        {
+                            "id": 7,
+                            "module": "datastore:UpdateRecord",
+                            "version": 1,
+                            "parameters": {
+                                "datastore": 97467
+                            },
+                            "mapper": {
+                                "key": "{{5.key}}",
+                                "data": {
+                                    "reminder_4hr_sent": true
+                                },
+                                "upsert": true,
+                                "overwriteArrays": false
+                            },
+                            "metadata": {
+                                "designer": {
+                                    "x": 900,
+                                    "y": 0
+                                }
+                            }
+                        }
+                    ]
+                },
+                {
+                    "flow": [
+                        {
+                            "id": 8,
+                            "module": "datastore:SearchRecord",
+                            "version": 1,
+                            "parameters": {
+                                "limit": 10,
+                                "datastore": 97467,
+                                "continueWhenNoRes": false
+                            },
+                            "mapper": {
+                                "sort": [],
+                                "filter": [
+                                    [
+                                        {
+                                            "a": "is_booked",
+                                            "b": true,
+                                            "o": "boolean:equal"
+                                        },
+                                        {
+                                            "a": "reminder_1hr_sent",
+                                            "b": true,
+                                            "o": "boolean:notequal"
+                                        },
+                                        {
+                                            "a": "slot_datetime",
+                                            "b": "{{addMinutes(now; 45)}}",
+                                            "o": "date:greater"
+                                        },
+                                        {
+                                            "a": "slot_datetime",
+                                            "b": "{{addMinutes(now; 75)}}",
+                                            "o": "date:less"
+                                        }
+                                    ]
+                                ],
+                                "mappAbleLimit": ""
+                            },
+                            "metadata": {
+                                "designer": {
+                                    "x": 300,
+                                    "y": 200
+                                },
+                                "restore": {
+                                    "parameters": {
+                                        "datastore": {
+                                            "label": "Indeed_Interview_Slots"
+                                        }
+                                    }
+                                }
+                            }
+                        },
+                        {
+                            "id": 9,
+                            "module": "google-email:sendAnEmail",
+                            "version": 4,
+                            "parameters": {
+                                "__IMTCONN__": 8323025
+                            },
+                            "mapper": {
+                                "cc": [],
+                                "to": [
+                                    "{{8.data.candidate_email}}"
+                                ],
+                                "bcc": [],
+                                "from": "karan9463verma@gmail.com",
+                                "html": "<div style=\"font-family:Arial,sans-serif;max-width:600px;margin:0 auto;padding:32px 24px;\"><p style=\"font-size:16px;color:#333;\">Hi <strong>{{8.data.candidate_name}}</strong>,</p><p style=\"font-size:15px;color:#444;line-height:1.7;\">Your interview for the <strong>{{8.data.job_title}}</strong> position starts in <strong>1 hour</strong>. We're looking forward to meeting you!</p><div style=\"background:#f5f7ff;border-left:4px solid #1a2744;padding:16px 20px;border-radius:4px;margin:20px 0;\"><p style=\"margin:0;color:#1a2744;\">&#128336; <strong>{{formatDate(8.data.slot_datetime; \"h:mm A\"; \"America/Vancouver\")}} Pacific Time</strong><br>&#128205; 12899 80 Ave #203, Surrey, BC V3W 0E6</p></div><p style=\"font-size:15px;color:#444;\">Please make sure you have the address ready. See you soon!</p><br><p style=\"color:#666;font-size:14px;\">Best regards,<br><strong>Karan Verma</strong><br>Nexa Marketing Inc.</p></div>",
+                                "subject": "Your Interview Starts in 1 Hour — {{8.data.job_title}}",
+                                "attachments": [],
+                                "contentType": "html"
+                            },
+                            "metadata": {
+                                "designer": {
+                                    "x": 600,
+                                    "y": 200
+                                }
+                            }
+                        },
+                        {
+                            "id": 10,
+                            "module": "datastore:UpdateRecord",
+                            "version": 1,
+                            "parameters": {
+                                "datastore": 97467
+                            },
+                            "mapper": {
+                                "key": "{{8.key}}",
+                                "data": {
+                                    "reminder_1hr_sent": true
+                                },
+                                "upsert": true,
+                                "overwriteArrays": false
+                            },
+                            "metadata": {
+                                "designer": {
+                                    "x": 900,
+                                    "y": 200
+                                }
+                            }
+                        }
+                    ]
+                }
+            ]
+        }
+    ],
+    "metadata": {
+        "instant": false,
+        "version": 1,
+        "scenario": {
+            "roundtrips": 1,
+            "maxErrors": 3,
+            "autoCommit": true,
+            "autoCommitTriggerLast": true,
+            "sequential": true,
+            "slots": null,
+            "confidential": false,
+            "dataloss": false,
+            "dlq": false,
+            "freshVariables": false
+        },
+        "designer": {
+            "orphans": []
+        },
+        "zone": "us2.make.com",
+        "notes": []
+    }
+}

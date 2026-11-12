@@ -1,0 +1,150 @@
+{
+  "name": "Nexa - AI Call Summary",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "nexa-ai-call-summary",
+        "responseMode": "onReceived",
+        "options": {}
+      },
+      "id": "webhook-ai-call-summary",
+      "name": "Webhook - AI Call Summary",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        0,
+        300
+      ],
+      "webhookId": "nexa-ai-call-summary"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.anthropic.com/v1/messages",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "x-api-key",
+              "value": "sk-ant-REDACTED_REPLACE_WITH_YOUR_KEY"
+            },
+            {
+              "name": "anthropic-version",
+              "value": "2023-06-01"
+            },
+            {
+              "name": "content-type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "contentType": "json",
+        "specifyBody": "json",
+        "jsonBody": "={{ { model: 'claude-haiku-4-5-20251001', max_tokens: 500, messages: [{ role: 'user', content: 'You are a sales call analyst for Nexa Consultancy, a loan brokerage in BC, Canada. Summarize this sales call in 3-4 bullet points. Include: (1) What the lead wants, (2) Any objections or concerns, (3) Next steps agreed, (4) Lead temperature: Hot/Warm/Cold with reason. Call transcript: ' + ($json.body?.call_transcript || $json.call_transcript || '') }] } }}",
+        "options": {}
+      },
+      "id": "anthropic-summarize-call",
+      "name": "Anthropic - Summarize Call",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        280,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const response = $input.first().json || {}; const webhook = $('Webhook - AI Call Summary').item.json || {}; const body = webhook.body || webhook; const content = response.body?.content || response.data?.content || response.content || []; const summary = Array.isArray(content) ? content.map(item => item.text || '').filter(Boolean).join('\\n').trim() : String(content || response.text || response.body?.text || '').trim(); return [{ json: { contactId: body.contact_id, summary } }];"
+      },
+      "id": "prepare-call-summary-note",
+      "name": "Prepare Call Summary Note",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        560,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ 'https://services.leadconnectorhq.com/contacts/' + $json.contactId + '/notes' }}",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "Bearer YOUR_API_TOKEN_HERE"
+            },
+            {
+              "name": "Version",
+              "value": "2021-07-28"
+            },
+            {
+              "name": "Accept",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "contentType": "json",
+        "specifyBody": "json",
+        "jsonBody": "={{ { body: 'AI Call Summary:\\n' + $json.summary } }}",
+        "options": {}
+      },
+      "id": "ghl-add-call-summary-note",
+      "name": "GHL - Add Call Summary Note",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        840,
+        300
+      ]
+    }
+  ],
+  "connections": {
+    "Webhook - AI Call Summary": {
+      "main": [
+        [
+          {
+            "node": "Anthropic - Summarize Call",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Anthropic - Summarize Call": {
+      "main": [
+        [
+          {
+            "node": "Prepare Call Summary Note",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Prepare Call Summary Note": {
+      "main": [
+        [
+          {
+            "node": "GHL - Add Call Summary Note",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "pinData": {},
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "staticData": null,
+  "tags": [],
+  "triggerCount": 0
+}

@@ -1,0 +1,229 @@
+{
+  "name": "Nexa - AI Lead Scoring",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "nexa-ai-lead-scoring",
+        "responseMode": "onReceived",
+        "options": {}
+      },
+      "id": "webhook-ai-lead-scoring",
+      "name": "Webhook - AI Lead Scoring",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        0,
+        300
+      ],
+      "webhookId": "nexa-ai-lead-scoring"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.anthropic.com/v1/messages",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "x-api-key",
+              "value": "sk-ant-REDACTED_REPLACE_WITH_YOUR_KEY"
+            },
+            {
+              "name": "anthropic-version",
+              "value": "2023-06-01"
+            },
+            {
+              "name": "content-type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "contentType": "json",
+        "specifyBody": "json",
+        "jsonBody": "={{ { model: 'claude-haiku-4-5-20251001', max_tokens: 200, messages: [{ role: 'user', content: 'Score this loan lead 0-100. Return ONLY JSON: {\"score\":NUMBER,\"reason\":\"text\"}. Lead: Name=' + ($json.body?.name || $json.name) + ', Loan=' + ($json.body?.loan_type || $json.loan_type) + ', Amount=' + ($json.body?.loan_amount || $json.loan_amount) + ', Status=' + ($json.body?.status_in_canada || $json.status_in_canada) + ', Source=' + ($json.body?.lead_source || $json.lead_source) }] } }}",
+        "options": {}
+      },
+      "id": "anthropic-score-lead",
+      "name": "Anthropic - Score Lead",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        280,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const response = $input.first().json || {}; const webhook = $('Webhook - AI Lead Scoring').item.json || {}; const body = webhook.body || webhook; const content = response.body?.content || response.data?.content || response.content || []; const text = content.map(item => item.text).filter(Boolean).join('').trim() || response.text || response.body?.text || ''; const cleaned = String(text).trim().replace(/^```json\\s*/i, '').replace(/^```\\s*/i, '').replace(/```$/i, '').trim(); let parsed = {}; try { parsed = JSON.parse(cleaned); } catch (error) { const match = cleaned.match(/\"score\"\\s*:\\s*(\\d+)/); parsed.score = match ? Number(match[1]) : 0; parsed.reason = cleaned; } return [{ json: { contactId: body.contact_id, scoreText: cleaned, score: Number(parsed.score || 0), reason: parsed.reason || '' } }];"
+      },
+      "id": "parse-ai-score",
+      "name": "Parse AI Score",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        560,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "method": "PUT",
+        "url": "={{ 'https://services.leadconnectorhq.com/contacts/' + $json.contactId }}",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "Bearer YOUR_API_TOKEN_HERE"
+            },
+            {
+              "name": "Version",
+              "value": "2021-07-28"
+            },
+            {
+              "name": "Accept",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "contentType": "json",
+        "specifyBody": "json",
+        "jsonBody": "={{ { customFields: [{ key: 'ai_lead_score', field_value: $json.scoreText }] } }}",
+        "options": {}
+      },
+      "id": "ghl-update-ai-score",
+      "name": "GHL - Update AI Lead Score",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        840,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "number": [
+            {
+              "value1": "={{ $('Parse AI Score').item.json.score }}",
+              "operation": "largerEqual",
+              "value2": 80
+            }
+          ]
+        }
+      },
+      "id": "score-80-or-higher",
+      "name": "Score 80 or Higher",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [
+        1120,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ 'https://services.leadconnectorhq.com/contacts/' + $('Parse AI Score').item.json.contactId + '/tags' }}",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "Bearer YOUR_API_TOKEN_HERE"
+            },
+            {
+              "name": "Version",
+              "value": "2021-07-28"
+            },
+            {
+              "name": "Accept",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "contentType": "json",
+        "specifyBody": "json",
+        "jsonBody": "={{ { tags: ['high-value-lead', 'ai-scored'] } }}",
+        "options": {}
+      },
+      "id": "ghl-add-high-value-tags",
+      "name": "GHL - Add High Value Tags",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1400,
+        200
+      ]
+    }
+  ],
+  "connections": {
+    "Webhook - AI Lead Scoring": {
+      "main": [
+        [
+          {
+            "node": "Anthropic - Score Lead",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Anthropic - Score Lead": {
+      "main": [
+        [
+          {
+            "node": "Parse AI Score",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Parse AI Score": {
+      "main": [
+        [
+          {
+            "node": "GHL - Update AI Lead Score",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "GHL - Update AI Lead Score": {
+      "main": [
+        [
+          {
+            "node": "Score 80 or Higher",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Score 80 or Higher": {
+      "main": [
+        [
+          {
+            "node": "GHL - Add High Value Tags",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "pinData": {},
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "staticData": null,
+  "tags": [],
+  "triggerCount": 0
+}

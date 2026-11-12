@@ -1,0 +1,98 @@
+{
+    "name": "Indeed — Post-Interview Thank You",
+    "flow": [
+        {
+            "id": 1,
+            "module": "datastore:SearchRecord",
+            "version": 1,
+            "parameters": {
+                "limit": 10,
+                "datastore": 97467,
+                "continueWhenNoRes": false
+            },
+            "mapper": {
+                "sort": [],
+                "filter": [
+                    [
+                        {
+                            "a": "is_booked",
+                            "b": "{{true}}",
+                            "o": "boolean:equal"
+                        },
+                        {
+                            "a": "slot_datetime",
+                            "b": "{{now}}",
+                            "o": "date:lessThan"
+                        },
+                        {
+                            "a": "slot_datetime",
+                            "b": "{{addHours(now; -5)}}",
+                            "o": "date:greaterThan"
+                        }
+                    ]
+                ],
+                "mappAbleLimit": ""
+            },
+            "metadata": {
+                "designer": {
+                    "x": 0,
+                    "y": 0
+                },
+                "restore": {
+                    "parameters": {
+                        "datastore": {
+                            "label": "Indeed_Interview_Slots"
+                        }
+                    }
+                }
+            }
+        },
+        {
+            "id": 2,
+            "module": "google-email:sendAnEmail",
+            "version": 4,
+            "parameters": {
+                "__IMTCONN__": 8323025
+            },
+            "mapper": {
+                "cc": [],
+                "to": [
+                    "{{1.data.candidate_email}}"
+                ],
+                "bcc": [],
+                "from": "karan9463verma@gmail.com",
+                "html": "<div style=\"font-family:Arial,sans-serif;max-width:600px;margin:0 auto;padding:32px 24px;\"><p style=\"font-size:16px;color:#333;\">Hi <strong>{{1.data.candidate_name}}</strong>,</p><p style=\"font-size:15px;color:#444;line-height:1.7;\">Thank you so much for taking the time to interview for the <strong>{{1.data.job_title}}</strong> position at <strong>Nexa Marketing Inc.</strong> today!</p><p style=\"font-size:15px;color:#444;line-height:1.7;\">It was a real pleasure getting to know you. We're currently reviewing all candidates and will be in touch with you soon regarding next steps.</p><p style=\"font-size:15px;color:#444;line-height:1.7;\">In the meantime, if you have any questions, please don't hesitate to reach out — we're always happy to chat!</p><p style=\"font-size:15px;color:#444;\">We appreciate your time and look forward to speaking again soon. 😊</p><br><p style=\"color:#666;font-size:14px;\">Warm regards,<br><strong>Karan Verma</strong><br>Nexa Marketing Inc.<br>📍 12899 80 Ave #203, Surrey, BC<br>✉️ karan9463verma@gmail.com</p></div>",
+                "subject": "Thank You for Interviewing With Us Today! 🙏",
+                "attachments": [],
+                "contentType": "html"
+            },
+            "metadata": {
+                "designer": {
+                    "x": 300,
+                    "y": 0
+                }
+            }
+        }
+    ],
+    "metadata": {
+        "instant": false,
+        "version": 1,
+        "scenario": {
+            "roundtrips": 1,
+            "maxErrors": 3,
+            "autoCommit": true,
+            "autoCommitTriggerLast": false,
+            "sequential": true,
+            "slots": null,
+            "confidential": false,
+            "dataloss": false,
+            "dlq": false,
+            "freshVariables": false
+        },
+        "designer": {
+            "orphans": []
+        },
+        "zone": "us2.make.com",
+        "notes": []
+    }
+}

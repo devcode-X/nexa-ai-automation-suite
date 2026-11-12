@@ -1,0 +1,291 @@
+{
+  "name": "Nexa - Launch to Multihexa",
+  "nodes": [
+    {
+      "parameters": {},
+      "id": "manual-trigger",
+      "name": "Manual Trigger",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        0,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://services.leadconnectorhq.com/contacts/search",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "Bearer YOUR_API_TOKEN_HERE"
+            },
+            {
+              "name": "Version",
+              "value": "2021-07-28"
+            },
+            {
+              "name": "Accept",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "contentType": "json",
+        "specifyBody": "json",
+        "jsonBody": "={{ { locationId: 'NRcuWE1OyAEdoOmZqjpu', pageLimit: 50, filters: [{ field: 'tags', operator: 'contains', value: 'ready-to-launch' }] } }}",
+        "options": {}
+      },
+      "id": "ghl-search-ready-contacts",
+      "name": "GHL - Search Ready Contacts",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        260,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const data = $input.first().json || {}; const contacts = data.data?.contacts || data.contacts || []; return contacts.map(contact => ({ json: contact }));"
+      },
+      "id": "split-ready-contacts",
+      "name": "Split Ready Contacts",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        520,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "url": "={{ 'https://services.leadconnectorhq.com/contacts/' + $json.id }}",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "Bearer YOUR_API_TOKEN_HERE"
+            },
+            {
+              "name": "Version",
+              "value": "2021-07-28"
+            },
+            {
+              "name": "Accept",
+              "value": "application/json"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "ghl-get-contact",
+      "name": "GHL - Get Contact",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        780,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const esc = (value) => String(value ?? '').replaceAll('&', '&amp;').replaceAll('<', '&lt;').replaceAll('>', '&gt;'); const cfValue = (fields, id) => { const field = fields.find(item => item.id === id); const value = field?.value ?? ''; return Array.isArray(value) ? value.join(', ') : (value && typeof value === 'object' ? JSON.stringify(value) : value); }; return $input.all().map((item, index) => { const result = item.json || {}; const source = $items('Split Ready Contacts')[index]?.json || {}; const contact = result.data?.contact || result.contact || result.data || result; const fields = Array.isArray(contact.customFields) ? contact.customFields : []; const fullName = [contact.firstName, contact.lastName].filter(Boolean).join(' ').trim(); const html = \"<div style='font-family:Arial,sans-serif;max-width:650px;color:#333;font-size:14px;line-height:1.5;'>\" + '<p>Hi Manvi,</p>' + '<p>Sending you a new student application for review and admission processing.</p>' + \"<table style='border-collapse:collapse;width:100%;font-size:13px;margin:18px 0;border:1px solid #d0d0d0;'>\" + \"<tr style='background:#f5f5f5;'><th colspan='2' style='text-align:left;padding:10px 12px;border-bottom:1px solid #d0d0d0;'>Student Information</th></tr>\" + \"<tr><td style='padding:8px 12px;border-bottom:1px solid #eee;width:35%;font-weight:600;'>Full Name</td><td style='padding:8px 12px;border-bottom:1px solid #eee;'>\" + esc(fullName) + '</td></tr>' + \"<tr><td style='padding:8px 12px;border-bottom:1px solid #eee;font-weight:600;'>Email</td><td style='padding:8px 12px;border-bottom:1px solid #eee;'>\" + esc(contact.email) + '</td></tr>' + \"<tr><td style='padding:8px 12px;border-bottom:1px solid #eee;font-weight:600;'>Phone</td><td style='padding:8px 12px;border-bottom:1px solid #eee;'>\" + esc(contact.phone) + '</td></tr>' + \"<tr><td style='padding:8px 12px;border-bottom:1px solid #eee;font-weight:600;'>Address</td><td style='padding:8px 12px;border-bottom:1px solid #eee;'>\" + esc(contact.address1) + '</td></tr>' + \"<tr><td style='padding:8px 12px;border-bottom:1px solid #eee;font-weight:600;'>Date of Birth</td><td style='padding:8px 12px;border-bottom:1px solid #eee;'>\" + esc(cfValue(fields, 'AwCnVF4mvPbOLN39eelB')) + '</td></tr>' + \"<tr><td style='padding:8px 12px;border-bottom:1px solid #eee;font-weight:600;'>Citizenship</td><td style='padding:8px 12px;border-bottom:1px solid #eee;'>\" + esc(cfValue(fields, 'S91FJ8xbxT7FS0qs1uM3')) + '</td></tr>' + \"<tr><td style='padding:8px 12px;border-bottom:1px solid #eee;font-weight:600;'>SIN</td><td style='padding:8px 12px;border-bottom:1px solid #eee;'>\" + esc(cfValue(fields, 'NIZl7wd1KuGZS7IsoZe9')) + '</td></tr>' + \"<tr><td style='padding:8px 12px;border-bottom:1px solid #eee;font-weight:600;'>Marital Status</td><td style='padding:8px 12px;border-bottom:1px solid #eee;'>\" + esc(cfValue(fields, 'YsvBDaPwrsCQbe4GDVdl')) + '</td></tr>' + \"<tr style='background:#f5f5f5;'><th colspan='2' style='text-align:left;padding:10px 12px;border-bottom:1px solid #d0d0d0;'>Identification</th></tr>\" + \"<tr><td style='padding:8px 12px;border-bottom:1px solid #eee;font-weight:600;'>ID 1 Type</td><td style='padding:8px 12px;border-bottom:1px solid #eee;'>\" + esc(cfValue(fields, '58jVo8a6SaJ8lALG5FZ5')) + '</td></tr>' + \"<tr><td style='padding:8px 12px;border-bottom:1px solid #eee;font-weight:600;'>ID 1 Number</td><td style='padding:8px 12px;border-bottom:1px solid #eee;'>\" + esc(cfValue(fields, '2TelmIb2IXZBLnORUJXh')) + '</td></tr>' + \"<tr><td style='padding:8px 12px;border-bottom:1px solid #eee;font-weight:600;'>ID 2 Type</td><td style='padding:8px 12px;border-bottom:1px solid #eee;'>\" + esc(cfValue(fields, '9uVgolzbQpE6UO1g2EEZ')) + '</td></tr>' + \"<tr style='background:#f5f5f5;'><th colspan='2' style='text-align:left;padding:10px 12px;border-bottom:1px solid #d0d0d0;'>Course &amp; Education</th></tr>\" + \"<tr><td style='padding:8px 12px;border-bottom:1px solid #eee;font-weight:600;'>Course Selected</td><td style='padding:8px 12px;border-bottom:1px solid #eee;'>\" + esc(cfValue(fields, 'rWxr36LJtpzLn728hqr2')) + '</td></tr>' + \"<tr><td style='padding:8px 12px;border-bottom:1px solid #eee;font-weight:600;'>English Test</td><td style='padding:8px 12px;border-bottom:1px solid #eee;'>\" + esc(cfValue(fields, '3ju2bvH7ZtV1Zwl1W1aL')) + '</td></tr>' + \"<tr><td style='padding:8px 12px;border-bottom:1px solid #eee;font-weight:600;'>English Score</td><td style='padding:8px 12px;border-bottom:1px solid #eee;'>\" + esc(cfValue(fields, 'pyvQBHPcJgTlnIbAeFz4')) + '</td></tr>' + \"<tr><td style='padding:8px 12px;border-bottom:1px solid #eee;font-weight:600;'>Education Docs</td><td style='padding:8px 12px;border-bottom:1px solid #eee;'>\" + esc(cfValue(fields, 'LrQ2gOs3g1n4GiDm5Doz')) + '</td></tr>' + '</table>' + '<p>The supporting documents (proof of status, photo ID, English certificate, education) are on file with us - reply to this email and I will forward whichever you need for the application package.</p>' + '<p>Please confirm receipt and let me know if anything else is required from your side.</p>' + '<p>Thanks,<br>Karan Verma<br>+1 778 582 4000<br>karan@thenexaconsultancy.com</p></div>'; return { json: { contactId: contact.id || source.id, subject: 'New Student Application - ' + fullName, html } }; });"
+      },
+      "id": "prepare-student-email",
+      "name": "Prepare Student Email",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1040,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "resource": "message",
+        "operation": "send",
+        "sendTo": "manvi.tiwari@etoncollege.ca",
+        "subject": "={{ $json.subject }}",
+        "emailType": "html",
+        "message": "={{ $json.html }}",
+        "options": {
+          "ccList": "karan9463verma@gmail.com",
+          "senderName": "Karan Verma",
+          "appendAttribution": false
+        }
+      },
+      "id": "gmail-send-application",
+      "name": "Gmail - Send Application to Multihexa",
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [
+        1300,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ 'https://services.leadconnectorhq.com/contacts/' + $('Prepare Student Email').item.json.contactId + '/tags' }}",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "Bearer YOUR_API_TOKEN_HERE"
+            },
+            {
+              "name": "Version",
+              "value": "2021-07-28"
+            },
+            {
+              "name": "Accept",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "contentType": "json",
+        "specifyBody": "json",
+        "jsonBody": "={{ { tags: ['launched-to-multihexa'] } }}",
+        "options": {}
+      },
+      "id": "ghl-add-launched-tag",
+      "name": "GHL - Add Launched Tag",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1560,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "method": "DELETE",
+        "url": "={{ 'https://services.leadconnectorhq.com/contacts/' + $('Prepare Student Email').item.json.contactId + '/tags' }}",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "Bearer YOUR_API_TOKEN_HERE"
+            },
+            {
+              "name": "Version",
+              "value": "2021-07-28"
+            },
+            {
+              "name": "Accept",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "contentType": "json",
+        "specifyBody": "json",
+        "jsonBody": "={{ { tags: ['ready-to-launch'] } }}",
+        "options": {}
+      },
+      "id": "ghl-remove-ready-tag",
+      "name": "GHL - Remove Ready Tag",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1820,
+        300
+      ]
+    }
+  ],
+  "connections": {
+    "Manual Trigger": {
+      "main": [
+        [
+          {
+            "node": "GHL - Search Ready Contacts",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "GHL - Search Ready Contacts": {
+      "main": [
+        [
+          {
+            "node": "Split Ready Contacts",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Split Ready Contacts": {
+      "main": [
+        [
+          {
+            "node": "GHL - Get Contact",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "GHL - Get Contact": {
+      "main": [
+        [
+          {
+            "node": "Prepare Student Email",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Prepare Student Email": {
+      "main": [
+        [
+          {
+            "node": "Gmail - Send Application to Multihexa",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Gmail - Send Application to Multihexa": {
+      "main": [
+        [
+          {
+            "node": "GHL - Add Launched Tag",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "GHL - Add Launched Tag": {
+      "main": [
+        [
+          {
+            "node": "GHL - Remove Ready Tag",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "pinData": {},
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "staticData": null,
+  "tags": [],
+  "triggerCount": 0
+}

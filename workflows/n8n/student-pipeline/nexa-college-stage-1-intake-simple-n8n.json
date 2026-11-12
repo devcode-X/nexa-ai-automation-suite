@@ -1,0 +1,299 @@
+{
+  "name": "Nexa - College Stage 1 Intake",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "nexa-college-stage-1-intake",
+        "responseMode": "onReceived",
+        "options": {}
+      },
+      "id": "webhook-college-stage-1-intake",
+      "name": "Webhook - College Stage 1 Intake",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        0,
+        300
+      ],
+      "webhookId": "nexa-college-stage-1-intake"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://services.leadconnectorhq.com/contacts/upsert",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "Bearer YOUR_API_TOKEN_HERE"
+            },
+            {
+              "name": "Version",
+              "value": "2021-07-28"
+            },
+            {
+              "name": "Accept",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "contentType": "json",
+        "specifyBody": "json",
+        "jsonBody": "={{ { locationId: 'NRcuWE1OyAEdoOmZqjpu', firstName: $json.body?.firstName || $json.firstName, lastName: $json.body?.lastName || $json.lastName, email: $json.body?.email || $json.email, phone: $json.body?.phone || $json.phone, address1: $json.body?.address || $json.address, assignedTo: (($json.body?.affiliateCode || $json.affiliateCode || '').toLowerCase().includes('mn-') ? 'UzhiJxPWxRgYgWJi3rnV' : 'B9UDIq4wY8tt7B7wqVwe'), tags: ['college-intake', 'stage-1-complete', 'college-multihexa'] } }}",
+        "options": {}
+      },
+      "id": "ghl-upsert-college-contact",
+      "name": "GHL - Upsert College Contact",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        280,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://services.leadconnectorhq.com/opportunities/",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "Bearer YOUR_API_TOKEN_HERE"
+            },
+            {
+              "name": "Version",
+              "value": "2021-07-28"
+            },
+            {
+              "name": "Accept",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "contentType": "json",
+        "specifyBody": "json",
+        "jsonBody": "={{ { pipelineId: 'EOW1CWVHMkNmlbr4sI6O', pipelineStageId: '83ae729a-6b14-426d-928e-998de5b3b256', locationId: 'NRcuWE1OyAEdoOmZqjpu', contactId: $json.contact?.id || $json.data?.contact?.id, name: (($('Webhook - College Stage 1 Intake').item.json.body?.firstName || $('Webhook - College Stage 1 Intake').item.json.firstName) + ' ' + ($('Webhook - College Stage 1 Intake').item.json.body?.lastName || $('Webhook - College Stage 1 Intake').item.json.lastName) + ' - MHBC College Enrollment'), status: 'open', assignedTo: (($('Webhook - College Stage 1 Intake').item.json.body?.affiliateCode || $('Webhook - College Stage 1 Intake').item.json.affiliateCode || '').toLowerCase().includes('mn-') ? 'UzhiJxPWxRgYgWJi3rnV' : 'B9UDIq4wY8tt7B7wqVwe'), source: 'Stage 1 Form' } }}",
+        "options": {}
+      },
+      "id": "ghl-create-college-opportunity",
+      "name": "GHL - Create College Opportunity",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        560,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://services.leadconnectorhq.com/conversations/messages",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "Bearer YOUR_API_TOKEN_HERE"
+            },
+            {
+              "name": "Version",
+              "value": "2021-07-28"
+            },
+            {
+              "name": "Accept",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "contentType": "json",
+        "specifyBody": "json",
+        "jsonBody": "={{ { type: 'Email', contactId: 'gQhb5JvGathC8UfA9QzS', subject: '[INTERNAL/PRIVATE] Stage 1 - ' + ($('Webhook - College Stage 1 Intake').item.json.body?.firstName || $('Webhook - College Stage 1 Intake').item.json.firstName) + ' ' + ($('Webhook - College Stage 1 Intake').item.json.body?.lastName || $('Webhook - College Stage 1 Intake').item.json.lastName), html: '<h2>New College Application - Full Internal View</h2><p><strong>Name:</strong> ' + ($('Webhook - College Stage 1 Intake').item.json.body?.firstName || $('Webhook - College Stage 1 Intake').item.json.firstName) + ' ' + ($('Webhook - College Stage 1 Intake').item.json.body?.lastName || $('Webhook - College Stage 1 Intake').item.json.lastName) + '<br><strong>Email:</strong> ' + ($('Webhook - College Stage 1 Intake').item.json.body?.email || $('Webhook - College Stage 1 Intake').item.json.email) + '<br><strong>Phone:</strong> ' + ($('Webhook - College Stage 1 Intake').item.json.body?.phone || $('Webhook - College Stage 1 Intake').item.json.phone) + '<br><strong>Address:</strong> ' + ($('Webhook - College Stage 1 Intake').item.json.body?.address || $('Webhook - College Stage 1 Intake').item.json.address) + '<br><strong>Affiliate Code:</strong> ' + ($('Webhook - College Stage 1 Intake').item.json.body?.affiliateCode || $('Webhook - College Stage 1 Intake').item.json.affiliateCode) + '<br><strong>GHL ID:</strong> ' + ($('GHL - Upsert College Contact').item.json.contact?.id || $('GHL - Upsert College Contact').item.json.data?.contact?.id) + '</p><h3 style=\"color:#b91c1c\">PROOF OF STATUS (PRIVATE - KARAN ONLY)</h3><p>Type: ' + ($('Webhook - College Stage 1 Intake').item.json.body?.proofOfStatusType || $('Webhook - College Stage 1 Intake').item.json.proofOfStatusType) + '</p><p>' + ($('Webhook - College Stage 1 Intake').item.json.body?.proofOfStatusDocs || $('Webhook - College Stage 1 Intake').item.json.proofOfStatusDocs) + '</p><h3 style=\"color:#b91c1c\">PHOTO ID (PRIVATE - KARAN ONLY)</h3><p>Type: ' + ($('Webhook - College Stage 1 Intake').item.json.body?.photoIdType || $('Webhook - College Stage 1 Intake').item.json.photoIdType) + '</p><p>' + ($('Webhook - College Stage 1 Intake').item.json.body?.photoIdDocs || $('Webhook - College Stage 1 Intake').item.json.photoIdDocs) + '</p><h3>ENGLISH / STUDY DOCUMENTS</h3><p>English Type: ' + ($('Webhook - College Stage 1 Intake').item.json.body?.englishProofType || $('Webhook - College Stage 1 Intake').item.json.englishProofType) + ' | Study Type: ' + ($('Webhook - College Stage 1 Intake').item.json.body?.studyProofType || $('Webhook - College Stage 1 Intake').item.json.studyProofType) + '</p><p>' + ($('Webhook - College Stage 1 Intake').item.json.body?.englishProofDocs || $('Webhook - College Stage 1 Intake').item.json.englishProofDocs) + '</p>' } }}",
+        "options": {}
+      },
+      "id": "ghl-email-internal-private-stage-1",
+      "name": "GHL - Email Internal Private Stage 1",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        840,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "string": [
+            {
+              "value1": "={{ ($('Webhook - College Stage 1 Intake').item.json.body?.affiliateCode || $('Webhook - College Stage 1 Intake').item.json.affiliateCode || '').toLowerCase() }}",
+              "operation": "contains",
+              "value2": "mn-"
+            }
+          ]
+        }
+      },
+      "id": "if-mn-affiliate-code",
+      "name": "IF - MN Affiliate Code?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [
+        1120,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://services.leadconnectorhq.com/conversations/messages",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "Bearer YOUR_API_TOKEN_HERE"
+            },
+            {
+              "name": "Version",
+              "value": "2021-07-28"
+            },
+            {
+              "name": "Accept",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "contentType": "json",
+        "specifyBody": "json",
+        "jsonBody": "={{ { type: 'Email', contactId: 'SUt8iIVse3KiNSLV6wSB', subject: 'New Student via Your Team - ' + ($('Webhook - College Stage 1 Intake').item.json.body?.firstName || $('Webhook - College Stage 1 Intake').item.json.firstName) + ' ' + ($('Webhook - College Stage 1 Intake').item.json.body?.lastName || $('Webhook - College Stage 1 Intake').item.json.lastName), html: '<div style=\"font-family:Arial,sans-serif;max-width:620px;\"><div style=\"background:#1E3A8A;padding:16px 20px;\"><h2 style=\"color:#fff;margin:0;font-size:17px\">New Student Application - Action Needed</h2></div><div style=\"padding:22px;background:#fff;\"><p>Hi Mike, a new student has submitted Stage 1 via your team\\'s branded link.</p><table style=\"border-collapse:collapse;width:100%;font-size:14px;margin-bottom:14px;\"><tr style=\"background:#f1f5f9;\"><td style=\"padding:8px 12px;font-weight:700;width:32%;\">Name</td><td style=\"padding:8px 12px;\">' + ($('Webhook - College Stage 1 Intake').item.json.body?.firstName || $('Webhook - College Stage 1 Intake').item.json.firstName) + ' ' + ($('Webhook - College Stage 1 Intake').item.json.body?.lastName || $('Webhook - College Stage 1 Intake').item.json.lastName) + '</td></tr><tr><td style=\"padding:8px 12px;font-weight:700;\">Email</td><td style=\"padding:8px 12px;\">' + ($('Webhook - College Stage 1 Intake').item.json.body?.email || $('Webhook - College Stage 1 Intake').item.json.email) + '</td></tr><tr style=\"background:#f1f5f9;\"><td style=\"padding:8px 12px;font-weight:700;\">Phone</td><td style=\"padding:8px 12px;\">' + ($('Webhook - College Stage 1 Intake').item.json.body?.phone || $('Webhook - College Stage 1 Intake').item.json.phone) + '</td></tr><tr><td style=\"padding:8px 12px;font-weight:700;\">Home Address</td><td style=\"padding:8px 12px;\">' + ($('Webhook - College Stage 1 Intake').item.json.body?.address || $('Webhook - College Stage 1 Intake').item.json.address) + '</td></tr><tr style=\"background:#f1f5f9;\"><td style=\"padding:8px 12px;font-weight:700;\">Affiliate Code</td><td style=\"padding:8px 12px;\">' + ($('Webhook - College Stage 1 Intake').item.json.body?.affiliateCode || $('Webhook - College Stage 1 Intake').item.json.affiliateCode) + '</td></tr></table><h3 style=\"color:#0a2540;\">English / Study Documents</h3><p>English Type: <strong>' + ($('Webhook - College Stage 1 Intake').item.json.body?.englishProofType || $('Webhook - College Stage 1 Intake').item.json.englishProofType) + '</strong> | Study Type: ' + ($('Webhook - College Stage 1 Intake').item.json.body?.studyProofType || $('Webhook - College Stage 1 Intake').item.json.studyProofType) + '</p><p>' + ($('Webhook - College Stage 1 Intake').item.json.body?.englishProofDocs || $('Webhook - College Stage 1 Intake').item.json.englishProofDocs) + '</p><div style=\"background:#f9fafb;border:1px solid #e5e7eb;padding:12px;border-radius:6px;margin:16px 0;font-size:13px;color:#6b7280\"><strong>Privacy note:</strong> Photo ID and proof of status are private - Nexa internal team only.</div><p>Customer is auto-assigned to your account. <a href=\"https://partners.thenexaconsultancy.com/stage2-partner.html?id=' + ($('GHL - Upsert College Contact').item.json.contact?.id || $('GHL - Upsert College Contact').item.json.data?.contact?.id) + '&name=' + encodeURIComponent(($('Webhook - College Stage 1 Intake').item.json.body?.firstName || $('Webhook - College Stage 1 Intake').item.json.firstName) + ' ' + ($('Webhook - College Stage 1 Intake').item.json.body?.lastName || $('Webhook - College Stage 1 Intake').item.json.lastName)) + '&email=' + encodeURIComponent($('Webhook - College Stage 1 Intake').item.json.body?.email || $('Webhook - College Stage 1 Intake').item.json.email) + '&phone=' + encodeURIComponent($('Webhook - College Stage 1 Intake').item.json.body?.phone || $('Webhook - College Stage 1 Intake').item.json.phone) + '&engType=' + encodeURIComponent($('Webhook - College Stage 1 Intake').item.json.body?.englishProofType || $('Webhook - College Stage 1 Intake').item.json.englishProofType) + '\" style=\"background:#1E3A8A;color:#fff;padding:12px 24px;border-radius:6px;text-decoration:none;font-weight:bold;\">Complete Stage 2</a></p></div></div>' } }}",
+        "options": {}
+      },
+      "id": "ghl-email-mike-stage-1",
+      "name": "GHL - Email Mike Stage 1",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1400,
+        200
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://services.leadconnectorhq.com/conversations/messages",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "Bearer YOUR_API_TOKEN_HERE"
+            },
+            {
+              "name": "Version",
+              "value": "2021-07-28"
+            },
+            {
+              "name": "Accept",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "contentType": "json",
+        "specifyBody": "json",
+        "jsonBody": "={{ { type: 'Email', contactId: 'n9aYOQCVbGLbqmrNfaRb', subject: 'New Student via Your Team - ' + ($('Webhook - College Stage 1 Intake').item.json.body?.firstName || $('Webhook - College Stage 1 Intake').item.json.firstName) + ' ' + ($('Webhook - College Stage 1 Intake').item.json.body?.lastName || $('Webhook - College Stage 1 Intake').item.json.lastName), html: '<div style=\"font-family:Arial,sans-serif;max-width:620px;\"><div style=\"background:#1E3A8A;padding:16px 20px;\"><h2 style=\"color:#fff;margin:0;font-size:17px\">New Student Application - Action Needed</h2></div><div style=\"padding:22px;background:#fff;\"><p>Hi Vineet, a new student has submitted Stage 1 via your team\\'s branded link.</p><table style=\"border-collapse:collapse;width:100%;font-size:14px;margin-bottom:14px;\"><tr style=\"background:#f1f5f9;\"><td style=\"padding:8px 12px;font-weight:700;width:32%;\">Name</td><td style=\"padding:8px 12px;\">' + ($('Webhook - College Stage 1 Intake').item.json.body?.firstName || $('Webhook - College Stage 1 Intake').item.json.firstName) + ' ' + ($('Webhook - College Stage 1 Intake').item.json.body?.lastName || $('Webhook - College Stage 1 Intake').item.json.lastName) + '</td></tr><tr><td style=\"padding:8px 12px;font-weight:700;\">Email</td><td style=\"padding:8px 12px;\">' + ($('Webhook - College Stage 1 Intake').item.json.body?.email || $('Webhook - College Stage 1 Intake').item.json.email) + '</td></tr><tr style=\"background:#f1f5f9;\"><td style=\"padding:8px 12px;font-weight:700;\">Phone</td><td style=\"padding:8px 12px;\">' + ($('Webhook - College Stage 1 Intake').item.json.body?.phone || $('Webhook - College Stage 1 Intake').item.json.phone) + '</td></tr><tr><td style=\"padding:8px 12px;font-weight:700;\">Home Address</td><td style=\"padding:8px 12px;\">' + ($('Webhook - College Stage 1 Intake').item.json.body?.address || $('Webhook - College Stage 1 Intake').item.json.address) + '</td></tr></table><h3>English / Study Docs</h3><p>' + ($('Webhook - College Stage 1 Intake').item.json.body?.englishProofType || $('Webhook - College Stage 1 Intake').item.json.englishProofType) + ' | ' + ($('Webhook - College Stage 1 Intake').item.json.body?.englishProofDocs || $('Webhook - College Stage 1 Intake').item.json.englishProofDocs) + '</p><p><a href=\"https://partners.thenexaconsultancy.com/stage2-partner.html?id=' + ($('GHL - Upsert College Contact').item.json.contact?.id || $('GHL - Upsert College Contact').item.json.data?.contact?.id) + '&name=' + encodeURIComponent(($('Webhook - College Stage 1 Intake').item.json.body?.firstName || $('Webhook - College Stage 1 Intake').item.json.firstName) + ' ' + ($('Webhook - College Stage 1 Intake').item.json.body?.lastName || $('Webhook - College Stage 1 Intake').item.json.lastName)) + '&email=' + encodeURIComponent($('Webhook - College Stage 1 Intake').item.json.body?.email || $('Webhook - College Stage 1 Intake').item.json.email) + '&phone=' + encodeURIComponent($('Webhook - College Stage 1 Intake').item.json.body?.phone || $('Webhook - College Stage 1 Intake').item.json.phone) + '&engType=' + encodeURIComponent($('Webhook - College Stage 1 Intake').item.json.body?.englishProofType || $('Webhook - College Stage 1 Intake').item.json.englishProofType) + '\" style=\"background:#1E3A8A;color:#fff;padding:12px 24px;border-radius:6px;text-decoration:none;font-weight:bold;\">Complete Stage 2</a></p></div></div>' } }}",
+        "options": {}
+      },
+      "id": "ghl-email-vineet-stage-1",
+      "name": "GHL - Email Vineet Stage 1",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1680,
+        200
+      ]
+    }
+  ],
+  "connections": {
+    "Webhook - College Stage 1 Intake": {
+      "main": [
+        [
+          {
+            "node": "GHL - Upsert College Contact",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "GHL - Upsert College Contact": {
+      "main": [
+        [
+          {
+            "node": "GHL - Create College Opportunity",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "GHL - Create College Opportunity": {
+      "main": [
+        [
+          {
+            "node": "GHL - Email Internal Private Stage 1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "GHL - Email Internal Private Stage 1": {
+      "main": [
+        [
+          {
+            "node": "IF - MN Affiliate Code?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "IF - MN Affiliate Code?": {
+      "main": [
+        [
+          {
+            "node": "GHL - Email Mike Stage 1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "GHL - Email Mike Stage 1": {
+      "main": [
+        [
+          {
+            "node": "GHL - Email Vineet Stage 1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "pinData": {},
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "staticData": null,
+  "tags": [],
+  "triggerCount": 0
+}

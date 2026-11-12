@@ -1,0 +1,68 @@
+{
+    "name": "Nexa — Affiliate Signup Email Alert",
+    "flow": [
+        {
+            "id": 1,
+            "module": "gateway:CustomWebHook",
+            "version": 1,
+            "parameters": {
+                "hook": 2201229,
+                "maxResults": 1
+            },
+            "mapper": {},
+            "metadata": {
+                "designer": {
+                    "x": 0,
+                    "y": 0
+                }
+            }
+        },
+        {
+            "id": 2,
+            "module": "google-email:sendAnEmail",
+            "version": 4,
+            "parameters": {
+                "__IMTCONN__": 8323025
+            },
+            "mapper": {
+                "cc": [],
+                "to": [
+                    "karan9463verma@gmail.com"
+                ],
+                "bcc": [],
+                "from": "karan9463verma@gmail.com",
+                "html": "<h2>🆕 New Affiliate Signup</h2><p><b>Name:</b> {{1.affiliate.name}}<br><b>Code:</b> {{1.affiliate.code}}<br><b>Email:</b> {{1.affiliate.email}}<br><b>Phone:</b> {{1.affiliate.phone}}<br><b>Tier:</b> {{1.affiliate.tier}}<br><b>Is sub-agent:</b> {{1.is_sub_agent}}<br><b>Parent code:</b> {{1.parent_code}}<br><b>Source:</b> {{1.source}}<br><b>Timestamp:</b> {{1.ts}}</p><p>Referral link: <code>https://partners.thenexaconsultancy.com/apply?ref={{1.affiliate.code}}</code></p>",
+                "subject": "🆕 New Nexa Affiliate Signup: {{1.affiliate.name}} ({{1.affiliate.code}})",
+                "attachments": [],
+                "contentType": "html"
+            },
+            "metadata": {
+                "designer": {
+                    "x": 300,
+                    "y": 0
+                }
+            }
+        }
+    ],
+    "metadata": {
+        "instant": true,
+        "version": 1,
+        "scenario": {
+            "roundtrips": 1,
+            "maxErrors": 3,
+            "autoCommit": true,
+            "autoCommitTriggerLast": true,
+            "sequential": false,
+            "slots": null,
+            "confidential": false,
+            "dataloss": false,
+            "dlq": false,
+            "freshVariables": false
+        },
+        "designer": {
+            "orphans": []
+        },
+        "zone": "us2.make.com",
+        "notes": []
+    }
+}

@@ -1,0 +1,492 @@
+{
+    "name": "Nexa — Facebook & Instagram Lead Ads",
+    "flow": [
+        {
+            "id": 1,
+            "module": "facebook-lead-ads:WatchLeads",
+            "version": 2,
+            "parameters": {
+                "limit": 2,
+                "formId": "960295313654553",
+                "pageId": "888117071052475",
+                "__IMTCONN__": 8310150
+            },
+            "mapper": {},
+            "metadata": {
+                "designer": {
+                    "x": 0,
+                    "y": 0
+                },
+                "restore": {
+                    "parameters": {
+                        "formId": {
+                            "mode": "chose",
+                            "label": "Untitled form 4/10/26, 4:33 PM"
+                        },
+                        "pageId": {
+                            "mode": "chose",
+                            "label": "Nexa Consultancy (Surrey)"
+                        },
+                        "__IMTCONN__": {
+                            "data": {
+                                "scoped": "true",
+                                "connection": "facebook"
+                            },
+                            "label": "My Facebook connection"
+                        }
+                    }
+                },
+                "parameters": [
+                    {
+                        "name": "__IMTCONN__",
+                        "type": "account:facebook",
+                        "label": "Connection",
+                        "required": true
+                    },
+                    {
+                        "name": "pageId",
+                        "type": "select",
+                        "label": "Page",
+                        "required": true
+                    },
+                    {
+                        "name": "limit",
+                        "type": "uinteger",
+                        "label": "Limit",
+                        "required": true
+                    },
+                    {
+                        "name": "formId",
+                        "type": "select",
+                        "label": "Form",
+                        "required": true
+                    }
+                ],
+                "interface": [
+                    {
+                        "name": "leadgenId",
+                        "type": "text",
+                        "label": "Lead ID"
+                    },
+                    {
+                        "name": "formId",
+                        "type": "text",
+                        "label": "Form ID"
+                    },
+                    {
+                        "name": "dateCreated",
+                        "type": "date",
+                        "label": "Date created"
+                    },
+                    {
+                        "name": "adId",
+                        "type": "text",
+                        "label": "Ad ID"
+                    },
+                    {
+                        "name": "data",
+                        "spec": [
+                            {
+                                "name": "full_name",
+                                "type": "text",
+                                "label": "Full name"
+                            },
+                            {
+                                "name": "email",
+                                "type": "text",
+                                "label": "Email"
+                            },
+                            {
+                                "name": "phone",
+                                "type": "text",
+                                "label": "Phone number"
+                            }
+                        ],
+                        "type": "collection",
+                        "label": "Field data"
+                    },
+                    {
+                        "name": "isOrganic",
+                        "type": "boolean",
+                        "label": "Is organic"
+                    },
+                    {
+                        "name": "adName",
+                        "type": "text",
+                        "label": "Ad name"
+                    },
+                    {
+                        "name": "adsetId",
+                        "type": "text",
+                        "label": "Ad set ID"
+                    },
+                    {
+                        "name": "adsetName",
+                        "type": "text",
+                        "label": "Adset name"
+                    },
+                    {
+                        "name": "campaignId",
+                        "type": "text",
+                        "label": "Campaign ID"
+                    },
+                    {
+                        "name": "campaignName",
+                        "type": "text",
+                        "label": "Campaign name"
+                    },
+                    {
+                        "name": "customDisclaimerResponses",
+                        "type": "collection",
+                        "label": "Custom disclaimer responses"
+                    },
+                    {
+                        "name": "homeListing",
+                        "type": "collection",
+                        "label": "Home listing"
+                    },
+                    {
+                        "name": "partnerName",
+                        "type": "text",
+                        "label": "Partner name"
+                    },
+                    {
+                        "name": "platform",
+                        "type": "text",
+                        "label": "Platform"
+                    },
+                    {
+                        "name": "retailerItemId",
+                        "type": "text",
+                        "label": "Retailer item ID"
+                    },
+                    {
+                        "name": "vehicle",
+                        "type": "collection",
+                        "label": "Vehicle"
+                    }
+                ]
+            }
+        },
+        {
+            "id": 2,
+            "module": "facebook-lead-ads:GetLeadDetails",
+            "version": 2,
+            "parameters": {
+                "__IMTCONN__": 8310150
+            },
+            "mapper": {
+                "leadId": "{{1.id}}"
+            },
+            "metadata": {
+                "designer": {
+                    "x": 300,
+                    "y": 0
+                },
+                "restore": {
+                    "parameters": {
+                        "__IMTCONN__": {
+                            "data": {
+                                "scoped": "true",
+                                "connection": "facebook"
+                            },
+                            "label": "My Facebook connection"
+                        }
+                    }
+                }
+            }
+        },
+        {
+            "id": 3,
+            "module": "http:ActionSendData",
+            "version": 3,
+            "parameters": {
+                "handleErrors": true,
+                "useNewZLibDeCompress": true
+            },
+            "mapper": {
+                "url": "https://hook.us2.make.com/jxrru2vn50m9xolijdpzrrghg6gja602",
+                "data": "{\"first_name\":\"{{2.first_name}}\",\"last_name\":\"{{2.last_name}}\",\"email\":\"{{2.email}}\",\"phone\":\"{{2.phone_number}}\",\"loan_type\":\"{{2.loan_type}}\",\"lead_source\":\"Facebook Lead Ad\"}",
+                "gzip": true,
+                "method": "post",
+                "headers": [
+                    {
+                        "name": "Content-Type",
+                        "value": "application/json"
+                    }
+                ],
+                "useMtls": false,
+                "bodyType": "raw",
+                "contentType": "application/json",
+                "serializeUrl": false,
+                "shareCookies": false,
+                "parseResponse": true,
+                "followRedirect": true,
+                "useQuerystring": false,
+                "followAllRedirects": false,
+                "rejectUnauthorized": true
+            },
+            "metadata": {
+                "designer": {
+                    "x": 600,
+                    "y": 0
+                }
+            }
+        },
+        {
+            "id": 4,
+            "module": "facebook-lead-ads:WatchLeads",
+            "version": 2,
+            "parameters": {
+                "limit": 2,
+                "pageId": "17841479000878995",
+                "__IMTCONN__": 8310150
+            },
+            "mapper": {},
+            "metadata": {
+                "designer": {
+                    "x": 0,
+                    "y": 200,
+                    "messages": [
+                        {
+                            "category": "link",
+                            "severity": "error",
+                            "message": "A trigger must be the first module in a scenario."
+                        }
+                    ]
+                },
+                "restore": {
+                    "parameters": {
+                        "pageId": {
+                            "mode": "chose",
+                            "label": "nexaconsultancy.official (Instagram)"
+                        },
+                        "__IMTCONN__": {
+                            "data": {
+                                "scoped": "true",
+                                "connection": "facebook"
+                            },
+                            "label": "My Facebook connection"
+                        }
+                    }
+                },
+                "parameters": [
+                    {
+                        "name": "__IMTCONN__",
+                        "type": "account:facebook",
+                        "label": "Connection",
+                        "required": true
+                    },
+                    {
+                        "name": "pageId",
+                        "type": "select",
+                        "label": "Page",
+                        "required": true
+                    },
+                    {
+                        "name": "limit",
+                        "type": "uinteger",
+                        "label": "Limit",
+                        "required": true
+                    },
+                    {
+                        "name": "formId",
+                        "type": "select",
+                        "label": "Form",
+                        "required": false
+                    }
+                ],
+                "interface": [
+                    {
+                        "name": "leadgenId",
+                        "type": "text",
+                        "label": "Lead ID"
+                    },
+                    {
+                        "name": "formId",
+                        "type": "text",
+                        "label": "Form ID"
+                    },
+                    {
+                        "name": "dateCreated",
+                        "type": "date",
+                        "label": "Date created"
+                    },
+                    {
+                        "name": "adId",
+                        "type": "text",
+                        "label": "Ad ID"
+                    },
+                    {
+                        "name": "data",
+                        "spec": [
+                            {
+                                "name": "full_name",
+                                "type": "text",
+                                "label": "Full name"
+                            },
+                            {
+                                "name": "email",
+                                "type": "text",
+                                "label": "Email"
+                            },
+                            {
+                                "name": "phone",
+                                "type": "text",
+                                "label": "Phone number"
+                            }
+                        ],
+                        "type": "collection",
+                        "label": "Field data"
+                    },
+                    {
+                        "name": "isOrganic",
+                        "type": "boolean",
+                        "label": "Is organic"
+                    },
+                    {
+                        "name": "adName",
+                        "type": "text",
+                        "label": "Ad name"
+                    },
+                    {
+                        "name": "adsetId",
+                        "type": "text",
+                        "label": "Ad set ID"
+                    },
+                    {
+                        "name": "adsetName",
+                        "type": "text",
+                        "label": "Adset name"
+                    },
+                    {
+                        "name": "campaignId",
+                        "type": "text",
+                        "label": "Campaign ID"
+                    },
+                    {
+                        "name": "campaignName",
+                        "type": "text",
+                        "label": "Campaign name"
+                    },
+                    {
+                        "name": "customDisclaimerResponses",
+                        "type": "collection",
+                        "label": "Custom disclaimer responses"
+                    },
+                    {
+                        "name": "homeListing",
+                        "type": "collection",
+                        "label": "Home listing"
+                    },
+                    {
+                        "name": "partnerName",
+                        "type": "text",
+                        "label": "Partner name"
+                    },
+                    {
+                        "name": "platform",
+                        "type": "text",
+                        "label": "Platform"
+                    },
+                    {
+                        "name": "retailerItemId",
+                        "type": "text",
+                        "label": "Retailer item ID"
+                    },
+                    {
+                        "name": "vehicle",
+                        "type": "collection",
+                        "label": "Vehicle"
+                    }
+                ]
+            }
+        },
+        {
+            "id": 5,
+            "module": "facebook-lead-ads:GetLeadDetails",
+            "version": 2,
+            "parameters": {
+                "__IMTCONN__": 8310150
+            },
+            "mapper": {
+                "leadId": "{{4.id}}"
+            },
+            "metadata": {
+                "designer": {
+                    "x": 300,
+                    "y": 200
+                },
+                "restore": {
+                    "parameters": {
+                        "__IMTCONN__": {
+                            "data": {
+                                "scoped": "true",
+                                "connection": "facebook"
+                            },
+                            "label": "My Facebook connection"
+                        }
+                    }
+                }
+            }
+        },
+        {
+            "id": 6,
+            "module": "http:ActionSendData",
+            "version": 3,
+            "parameters": {
+                "handleErrors": true,
+                "useNewZLibDeCompress": true
+            },
+            "mapper": {
+                "url": "https://hook.us2.make.com/jxrru2vn50m9xolijdpzrrghg6gja602",
+                "data": "{\"first_name\":\"{{5.first_name}}\",\"last_name\":\"{{5.last_name}}\",\"email\":\"{{5.email}}\",\"phone\":\"{{5.phone_number}}\",\"loan_type\":\"{{5.loan_type}}\",\"lead_source\":\"Instagram Lead Ad\"}",
+                "gzip": true,
+                "method": "post",
+                "headers": [
+                    {
+                        "name": "Content-Type",
+                        "value": "application/json"
+                    }
+                ],
+                "useMtls": false,
+                "bodyType": "raw",
+                "contentType": "application/json",
+                "serializeUrl": false,
+                "shareCookies": false,
+                "parseResponse": true,
+                "followRedirect": true,
+                "useQuerystring": false,
+                "followAllRedirects": false,
+                "rejectUnauthorized": true
+            },
+            "metadata": {
+                "designer": {
+                    "x": 600,
+                    "y": 200
+                }
+            }
+        }
+    ],
+    "metadata": {
+        "instant": true,
+        "version": 1,
+        "scenario": {
+            "roundtrips": 1,
+            "maxErrors": 3,
+            "autoCommit": true,
+            "autoCommitTriggerLast": true,
+            "sequential": false,
+            "slots": null,
+            "confidential": false,
+            "dataloss": false,
+            "dlq": false,
+            "freshVariables": false
+        },
+        "designer": {
+            "orphans": []
+        },
+        "zone": "us2.make.com",
+        "notes": []
+    }
+}

@@ -1,0 +1,175 @@
+{
+  "name": "Nexa - AI Daily Follow-Up Engine",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "nexa-ai-daily-follow-up",
+        "responseMode": "onReceived",
+        "options": {}
+      },
+      "id": "webhook-ai-daily-follow-up",
+      "name": "Webhook - AI Daily Follow-Up",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        0,
+        300
+      ],
+      "webhookId": "nexa-ai-daily-follow-up"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.anthropic.com/v1/messages",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "x-api-key",
+              "value": "sk-ant-REDACTED_REPLACE_WITH_YOUR_KEY"
+            },
+            {
+              "name": "anthropic-version",
+              "value": "2023-06-01"
+            },
+            {
+              "name": "content-type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "contentType": "json",
+        "specifyBody": "json",
+        "jsonBody": "={{ { model: 'claude-haiku-4-5-20251001', max_tokens: 1024, messages: [{ role: 'user', content: 'You are Nexa Consultancy AI Sales Follow-Up Agent. Write a personalized follow-up email to re-engage a lead who has not responded. Contact: name=' + ($json.body?.contact_name || $json.contact_name) + ', email=' + ($json.body?.contact_email || $json.contact_email) + ', immigration_status=' + ($json.body?.immigration_status || $json.immigration_status) + ', lead_tier=' + ($json.body?.lead_tier || $json.lead_tier) + ', eligible_amount=' + ($json.body?.eligible_amount || $json.eligible_amount) + ', days_since_last_contact=' + ($json.body?.days_since_last_contact || $json.days_since_last_contact) + ', last_contact_notes=' + ($json.body?.last_contact_notes || $json.last_contact_notes) + ', program_interest=' + ($json.body?.program_interest || $json.program_interest) + '. Nexa offers up to $60K-$120K at 0% interest for skill upgrades in BC, zero fees to clients. The follow-up should feel personal, not automated. Reference their specific situation. Create urgency without being pushy. Return ONLY a valid JSON object with no markdown: recipient_email (the contact email), email_subject (subject line), email_html (full personalized HTML follow-up email), karan_alert (one-line: name-tier-days-action taken).' }] } }}",
+        "options": {}
+      },
+      "id": "anthropic-create-follow-up",
+      "name": "Anthropic - Create Follow-Up Email",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        280,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const response = $input.first().json || {}; const content = response.body?.content || response.content || []; const text = content[1]?.text || content[0]?.text || response.text || response.body?.text || ''; const cleaned = String(text).trim().replace(/^```json\\s*/i, '').replace(/^```\\s*/i, '').replace(/```$/i, '').trim(); const parsed = JSON.parse(cleaned); return [{ json: parsed }];"
+      },
+      "id": "parse-ai-json",
+      "name": "Parse AI JSON",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        560,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "resource": "message",
+        "operation": "send",
+        "sendTo": "={{ $json.recipient_email }}",
+        "subject": "={{ $json.email_subject }}",
+        "emailType": "html",
+        "message": "={{ $json.email_html }}",
+        "options": {
+          "senderName": "Karan Verma",
+          "appendAttribution": false
+        }
+      },
+      "id": "gmail-send-follow-up",
+      "name": "Gmail - Send Follow-Up Email",
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [
+        840,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://hook.us2.make.com/cn424cy8r31gmmvq9b7bttiyyerbad1i",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "content-type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "contentType": "json",
+        "specifyBody": "json",
+        "jsonBody": "={{ { message: 'FOLLOW-UP SENT\\n' + $('Parse AI JSON').item.json.karan_alert + '\\nEmail sent to: ' + $('Parse AI JSON').item.json.recipient_email + '\\nSubject: ' + $('Parse AI JSON').item.json.email_subject, alert_type: 'follow_up_engine', data: {} } }}",
+        "options": {}
+      },
+      "id": "send-follow-up-alert",
+      "name": "Send Follow-Up Alert",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1120,
+        300
+      ]
+    }
+  ],
+  "connections": {
+    "Webhook - AI Daily Follow-Up": {
+      "main": [
+        [
+          {
+            "node": "Anthropic - Create Follow-Up Email",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Anthropic - Create Follow-Up Email": {
+      "main": [
+        [
+          {
+            "node": "Parse AI JSON",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Parse AI JSON": {
+      "main": [
+        [
+          {
+            "node": "Gmail - Send Follow-Up Email",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Gmail - Send Follow-Up Email": {
+      "main": [
+        [
+          {
+            "node": "Send Follow-Up Alert",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "pinData": {},
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "staticData": null,
+  "tags": [],
+  "triggerCount": 0
+}

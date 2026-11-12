@@ -1,0 +1,79 @@
+{
+  "name": "Nexa - Gmail Application Trigger",
+  "nodes": [
+    {
+      "parameters": {
+        "pollTimes": {
+          "item": [
+            {
+              "mode": "everyMinute"
+            }
+          ]
+        },
+        "simple": false,
+        "filters": {
+          "q": "from:noreply@indeed.com"
+        },
+        "options": {}
+      },
+      "id": "7a0c1035-00a7-4c92-a75a-7b8d6e990701",
+      "name": "Gmail - New Indeed Application",
+      "type": "n8n-nodes-base.gmailTrigger",
+      "typeVersion": 1,
+      "position": [
+        260,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://hook.us2.make.com/c6rlkj7iljcf7842hcwr68a3lc6bpj5o",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "contentType": "json",
+        "jsonBody": "={{ {\n  applicant_name: (($json.subject || '').replace(/^(.+?) applied to.+$/, '$1')).trim(),\n  applicant_email: (((($json.textPlain || $json.text || $json.snippet || '').match(/[\\s\\S]*?[Ee]mail:\\s*([\\w.+\\-]+@[\\w\\-]+\\.[\\w.]+)[\\s\\S]*/) || [])[1] || '').trim(),\n  role_applying_for: (($json.subject || '').replace(/^.+? applied to (.+?) at .+$/, '$1')).trim()\n} }}",
+        "options": {}
+      },
+      "id": "372d010a-0e0b-4925-970c-2516389eece7",
+      "name": "Webhook - Send Application Data",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        560,
+        300
+      ]
+    }
+  ],
+  "connections": {
+    "Gmail - New Indeed Application": {
+      "main": [
+        [
+          {
+            "node": "Webhook - Send Application Data",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "pinData": {},
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "staticData": null,
+  "tags": [],
+  "triggerCount": 1,
+  "updatedAt": "2026-06-05T00:00:00.000Z",
+  "versionId": "simple-gmail-application-trigger-v1",
+  "active": false
+}

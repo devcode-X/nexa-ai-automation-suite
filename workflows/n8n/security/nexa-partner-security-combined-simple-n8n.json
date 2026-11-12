@@ -1,0 +1,337 @@
+{
+  "name": "Nexa - Partner Security Combined",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "nexa-partner-security",
+        "responseMode": "onReceived",
+        "options": {}
+      },
+      "id": "webhook-partner-security",
+      "name": "Webhook - Partner Security",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        0,
+        300
+      ],
+      "webhookId": "nexa-partner-security"
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.body?.event || $json.event }}",
+                    "rightValue": "login_event",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "login_event"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.body?.event || $json.event }}",
+                    "rightValue": "password_changed",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "password_changed"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "switch-event-router",
+      "name": "Switch - Event Router",
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3,
+      "position": [
+        240,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://services.leadconnectorhq.com/contacts/upsert",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "Bearer YOUR_API_TOKEN_HERE"
+            },
+            {
+              "name": "Version",
+              "value": "2021-07-28"
+            },
+            {
+              "name": "Accept",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "contentType": "json",
+        "specifyBody": "json",
+        "jsonBody": "={{ { locationId: 'NRcuWE1OyAEdoOmZqjpu', email: $json.body?.email || $json.email, phone: $json.body?.phone || $json.phone, firstName: $json.body?.name || $json.name, tags: ['partner-login-event'] } }}",
+        "options": {}
+      },
+      "id": "ghl-upsert-login-event",
+      "name": "GHL - Upsert Contact (Login Event)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        520,
+        160
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://services.leadconnectorhq.com/conversations/messages",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "Bearer YOUR_API_TOKEN_HERE"
+            },
+            {
+              "name": "Version",
+              "value": "2021-07-28"
+            },
+            {
+              "name": "Accept",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "contentType": "json",
+        "specifyBody": "json",
+        "jsonBody": "={{ {\n  type: 'Email',\n  contactId: $json.contact?.id || $json.data?.contact?.id,\n  subject: '[Partner] New device sign-in code - ' + ($('Webhook - Partner Security').item.json.body?.code || $('Webhook - Partner Security').item.json.code),\n  html:\n    '<p>Hi ' +\n    ($('Webhook - Partner Security').item.json.body?.name || $('Webhook - Partner Security').item.json.name) +\n    ',</p>' +\n    '<p>A sign-in was requested on a new device for your Nexa Partner Portal.</p>' +\n    '<p><strong>Your code: ' +\n    ($('Webhook - Partner Security').item.json.body?.code || $('Webhook - Partner Security').item.json.code) +\n    '</strong></p>' +\n    '<p>Device: ' +\n    ($('Webhook - Partner Security').item.json.body?.userAgent || $('Webhook - Partner Security').item.json.userAgent) +\n    '<br>Time: ' +\n    ($('Webhook - Partner Security').item.json.body?.ts || $('Webhook - Partner Security').item.json.ts) +\n    '</p>' +\n    '<p>If this was not you, reply to this email immediately.</p>'\n} }}",
+        "options": {}
+      },
+      "id": "ghl-email-login-code",
+      "name": "GHL - Email Sign-in Code",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        780,
+        160
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://services.leadconnectorhq.com/conversations/messages",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "Bearer YOUR_API_TOKEN_HERE"
+            },
+            {
+              "name": "Version",
+              "value": "2021-07-28"
+            },
+            {
+              "name": "Accept",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "contentType": "json",
+        "specifyBody": "json",
+        "jsonBody": "={{ { type: 'SMS', contactId: $node['GHL - Upsert Contact (Login Event)'].json.contact?.id || $node['GHL - Upsert Contact (Login Event)'].json.data?.contact?.id, message: 'Your Nexa code: ' + ($('Webhook - Partner Security').item.json.body?.code || $('Webhook - Partner Security').item.json.code) + '. Do not share.' } }}",
+        "options": {}
+      },
+      "id": "ghl-sms-login-code",
+      "name": "GHL - SMS Sign-in Code",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1040,
+        160
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://services.leadconnectorhq.com/contacts/upsert",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "Bearer YOUR_API_TOKEN_HERE"
+            },
+            {
+              "name": "Version",
+              "value": "2021-07-28"
+            },
+            {
+              "name": "Accept",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "contentType": "json",
+        "specifyBody": "json",
+        "jsonBody": "={{ { locationId: 'NRcuWE1OyAEdoOmZqjpu', email: $json.body?.email || $json.email, firstName: $json.body?.name || $json.name, tags: ['partner-password-changed'] } }}",
+        "options": {}
+      },
+      "id": "ghl-upsert-password-event",
+      "name": "GHL - Upsert Contact (Password Event)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        520,
+        460
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://services.leadconnectorhq.com/conversations/messages",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "Bearer YOUR_API_TOKEN_HERE"
+            },
+            {
+              "name": "Version",
+              "value": "2021-07-28"
+            },
+            {
+              "name": "Accept",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "contentType": "json",
+        "specifyBody": "json",
+        "jsonBody": "={{ { type: 'Email', contactId: $json.contact?.id || $json.data?.contact?.id, subject: '[Partner] Your portal password was changed', html: '<p>Hi ' + ($('Webhook - Partner Security').item.json.body?.name || $('Webhook - Partner Security').item.json.name) + ',</p><p>Your Nexa Partner Portal password was changed.</p><p><strong>Device:</strong> ' + ($('Webhook - Partner Security').item.json.body?.userAgent || $('Webhook - Partner Security').item.json.userAgent) + '<br><strong>Time:</strong> ' + ($('Webhook - Partner Security').item.json.body?.ts || $('Webhook - Partner Security').item.json.ts) + '<br><strong>Action:</strong> ' + ($('Webhook - Partner Security').item.json.body?.action || $('Webhook - Partner Security').item.json.action) + '</p><p><strong>If this was not you, reply immediately so we can lock the account.</strong></p><p>- Karan Verma, Nexa Consultancy</p>' } }}",
+        "options": {}
+      },
+      "id": "ghl-email-password-changed",
+      "name": "GHL - Email Password Changed",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        780,
+        460
+      ]
+    }
+  ],
+  "connections": {
+    "Webhook - Partner Security": {
+      "main": [
+        [
+          {
+            "node": "Switch - Event Router",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Switch - Event Router": {
+      "main": [
+        [
+          {
+            "node": "GHL - Upsert Contact (Login Event)",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "GHL - Upsert Contact (Password Event)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "GHL - Upsert Contact (Login Event)": {
+      "main": [
+        [
+          {
+            "node": "GHL - Email Sign-in Code",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "GHL - Email Sign-in Code": {
+      "main": [
+        [
+          {
+            "node": "GHL - SMS Sign-in Code",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "GHL - Upsert Contact (Password Event)": {
+      "main": [
+        [
+          {
+            "node": "GHL - Email Password Changed",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "pinData": {},
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "staticData": null,
+  "tags": [],
+  "triggerCount": 0
+}

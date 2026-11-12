@@ -1,0 +1,151 @@
+{
+    "name": "Nexa — Daily Karan Briefing",
+    "flow": [
+        {
+            "id": 1,
+            "module": "http:ActionSendData",
+            "version": 3,
+            "parameters": {
+                "handleErrors": false,
+                "useNewZLibDeCompress": true
+            },
+            "mapper": {
+                "url": "https://services.leadconnectorhq.com/opportunities/search?location_id=NRcuWE1OyAEdoOmZqjpu&pipeline_id=EOW1CWVHMkNmlbr4sI6O&status=open&limit=100",
+                "gzip": true,
+                "method": "get",
+                "headers": [
+                    {
+                        "name": "Authorization",
+                        "value": "Bearer YOUR_API_TOKEN_HERE"
+                    },
+                    {
+                        "name": "Version",
+                        "value": "2021-07-28"
+                    }
+                ],
+                "useMtls": false,
+                "bodyType": "raw",
+                "contentType": "application/json",
+                "serializeUrl": false,
+                "shareCookies": false,
+                "parseResponse": true,
+                "followRedirect": true,
+                "useQuerystring": false,
+                "followAllRedirects": false,
+                "rejectUnauthorized": true
+            },
+            "metadata": {
+                "designer": {
+                    "x": 0,
+                    "y": 0
+                }
+            }
+        },
+        {
+            "id": 2,
+            "module": "http:ActionSendData",
+            "version": 3,
+            "parameters": {
+                "handleErrors": false,
+                "useNewZLibDeCompress": true
+            },
+            "mapper": {
+                "url": "https://services.leadconnectorhq.com/contacts/?locationId=NRcuWE1OyAEdoOmZqjpu&limit=100&query=",
+                "gzip": true,
+                "method": "get",
+                "headers": [
+                    {
+                        "name": "Authorization",
+                        "value": "Bearer YOUR_API_TOKEN_HERE"
+                    },
+                    {
+                        "name": "Version",
+                        "value": "2021-07-28"
+                    }
+                ],
+                "useMtls": false,
+                "bodyType": "raw",
+                "contentType": "application/json",
+                "serializeUrl": false,
+                "shareCookies": false,
+                "parseResponse": true,
+                "followRedirect": true,
+                "useQuerystring": false,
+                "followAllRedirects": false,
+                "rejectUnauthorized": true
+            },
+            "metadata": {
+                "designer": {
+                    "x": 300,
+                    "y": 0
+                }
+            }
+        },
+        {
+            "id": 3,
+            "module": "http:ActionSendData",
+            "version": 3,
+            "parameters": {
+                "handleErrors": false,
+                "useNewZLibDeCompress": true
+            },
+            "mapper": {
+                "url": "https://services.leadconnectorhq.com/conversations/messages",
+                "data": "{\"type\":\"Email\",\"contactId\":\"gQhb5JvGathC8UfA9QzS\",\"locationId\":\"NRcuWE1OyAEdoOmZqjpu\",\"emailFrom\":\"karan@thenexaconsultancy.com\",\"emailFromName\":\"Nexa Daily Briefing\",\"emailReplyTo\":\"karan@thenexaconsultancy.com\",\"subject\":\"Nexa Daily Briefing\",\"html\":\"<div style='font-family:Arial,sans-serif;max-width:600px;'><div style='background:#0a2540;padding:20px;text-align:center;'><h2 style='color:#fff;margin:0;'>✨ Nexa Daily Briefing</h2></div><div style='padding:24px;background:#fff;'><h3 style='color:#0a2540;margin-top:0;'>Pipeline Snapshot</h3><table style='border-collapse:collapse;width:100%;font-size:14px;'><tr style='background:#f1f5f9;'><td style='padding:10px 14px;font-weight:700;'>Active College Enrollment deals</td><td style='padding:10px 14px;font-weight:700;color:#059669;'>{{1.data.meta.total}}</td></tr><tr><td style='padding:10px 14px;font-weight:700;'>Total contacts in GHL</td><td style='padding:10px 14px;'>{{2.data.meta.total}}</td></tr></table><p style='margin-top:24px;font-size:13px;color:#64748b;'>Open the GHL dashboard for stage-by-stage details.</p></div></div>\"}",
+                "gzip": true,
+                "method": "post",
+                "headers": [
+                    {
+                        "name": "Authorization",
+                        "value": "Bearer YOUR_API_TOKEN_HERE"
+                    },
+                    {
+                        "name": "Version",
+                        "value": "2021-07-28"
+                    },
+                    {
+                        "name": "Content-Type",
+                        "value": "application/json"
+                    }
+                ],
+                "useMtls": false,
+                "bodyType": "raw",
+                "contentType": "application/json",
+                "serializeUrl": false,
+                "shareCookies": false,
+                "parseResponse": true,
+                "followRedirect": true,
+                "useQuerystring": false,
+                "followAllRedirects": false,
+                "rejectUnauthorized": true
+            },
+            "metadata": {
+                "designer": {
+                    "x": 600,
+                    "y": 0
+                }
+            }
+        }
+    ],
+    "metadata": {
+        "instant": false,
+        "version": 1,
+        "scenario": {
+            "roundtrips": 1,
+            "maxErrors": 3,
+            "autoCommit": true,
+            "autoCommitTriggerLast": true,
+            "sequential": false,
+            "slots": null,
+            "confidential": false,
+            "dataloss": false,
+            "dlq": false,
+            "freshVariables": false
+        },
+        "designer": {
+            "orphans": []
+        },
+        "zone": "us2.make.com",
+        "notes": []
+    }
+}

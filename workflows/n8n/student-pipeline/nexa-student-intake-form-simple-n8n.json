@@ -1,0 +1,173 @@
+{
+  "name": "Nexa - Student Intake Form",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "stage1-student",
+        "responseMode": "onReceived",
+        "options": {}
+      },
+      "id": "webhook-student-intake",
+      "name": "Webhook - Student Intake",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        0,
+        300
+      ],
+      "webhookId": "stage1-student"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://services.leadconnectorhq.com/contacts/upsert",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "Bearer YOUR_API_TOKEN_HERE"
+            },
+            {
+              "name": "Version",
+              "value": "2021-07-28"
+            },
+            {
+              "name": "Accept",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "contentType": "json",
+        "specifyBody": "json",
+        "jsonBody": "={{ { locationId: 'NRcuWE1OyAEdoOmZqjpu', email: $json.body?.primary?.email || $json.primary?.email, firstName: $json.body?.primary?.name || $json.primary?.name, phone: $json.body?.primary?.phone || $json.primary?.phone, address1: $json.body?.primary?.address || $json.primary?.address, dateOfBirth: $json.body?.primary?.dob || $json.primary?.dob, tags: ['student-lead', 'from-affiliate-' + ($json.body?.affiliate || $json.affiliate || ''), 'source-doorstep-intake'], customFields: [{ key: 'case_id', field_value: $json.body?.caseId || $json.caseId }, { key: 'intake_source', field_value: 'doorstep' }, { key: 'student_sin', field_value: $json.body?.primary?.sin || $json.primary?.sin }, { key: 'student_citizenship', field_value: $json.body?.primary?.citizen || $json.primary?.citizen }, { key: 'marital_status', field_value: $json.body?.marital || $json.marital }, { key: 'id1_type', field_value: $json.body?.id1?.type || $json.id1?.type }, { key: 'id1_number', field_value: $json.body?.id1?.number || $json.id1?.number }, { key: 'id2_type', field_value: $json.body?.id2?.type || $json.id2?.type }, { key: 'education_doc', field_value: $json.body?.education_doc || $json.education_doc }, { key: 'course_selected', field_value: $json.body?.course || $json.course }, { key: 'fee_plan_summary', field_value: $json.body?.fee_summary || $json.fee_summary }, { key: 'spouse_name', field_value: $json.body?.spouse?.name || $json.spouse?.name }, { key: 'spouse_email', field_value: $json.body?.spouse?.email || $json.spouse?.email }, { key: 'spouse_phone', field_value: $json.body?.spouse?.phone || $json.spouse?.phone }, { key: 'spouse_dob', field_value: $json.body?.spouse?.dob || $json.spouse?.dob }, { key: 'spouse_sin', field_value: $json.body?.spouse?.sin || $json.spouse?.sin }, { key: 'intake_note', field_value: $json.body?.note || $json.note }] } }}",
+        "options": {}
+      },
+      "id": "ghl-upsert-student-intake",
+      "name": "GHL - Upsert Student Intake",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        280,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ 'https://services.leadconnectorhq.com/contacts/' + ($json.contact?.id || $json.data?.contact?.id) + '/notes' }}",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "Bearer YOUR_API_TOKEN_HERE"
+            },
+            {
+              "name": "Version",
+              "value": "2021-07-28"
+            },
+            {
+              "name": "Accept",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "contentType": "json",
+        "specifyBody": "json",
+        "jsonBody": "={{ { body: '===== APPENDIX 1 (Parents / Sponsor) =====\\n' + ($('Webhook - Student Intake').item.json.body?.appendix1 || $('Webhook - Student Intake').item.json.appendix1 || '') + '\\n\\n===== APPENDIX 2 (Spouse) =====\\n' + ($('Webhook - Student Intake').item.json.body?.appendix2 || $('Webhook - Student Intake').item.json.appendix2 || ''), userId: 'karan' } }}",
+        "options": {}
+      },
+      "id": "ghl-add-appendix-note",
+      "name": "GHL - Add Appendix Note",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        560,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://services.leadconnectorhq.com/conversations/messages",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "Bearer YOUR_API_TOKEN_HERE"
+            },
+            {
+              "name": "Version",
+              "value": "2021-07-28"
+            },
+            {
+              "name": "Accept",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "contentType": "json",
+        "specifyBody": "json",
+        "jsonBody": "={{ { type: 'Email', contactId: $('GHL - Upsert Student Intake').item.json.contact?.id || $('GHL - Upsert Student Intake').item.json.data?.contact?.id, subject: 'New Client: ' + ($('Webhook - Student Intake').item.json.body?.primary?.name || $('Webhook - Student Intake').item.json.primary?.name) + ' - ' + ($('Webhook - Student Intake').item.json.body?.caseId || $('Webhook - Student Intake').item.json.caseId), html: '<h2>New Client Submission</h2><p>Case ID: ' + ($('Webhook - Student Intake').item.json.body?.caseId || $('Webhook - Student Intake').item.json.caseId) + ' | Affiliate: ' + ($('Webhook - Student Intake').item.json.body?.affiliate || $('Webhook - Student Intake').item.json.affiliate) + '</p><p>Name: ' + ($('Webhook - Student Intake').item.json.body?.primary?.name || $('Webhook - Student Intake').item.json.primary?.name) + '<br>Email: ' + ($('Webhook - Student Intake').item.json.body?.primary?.email || $('Webhook - Student Intake').item.json.primary?.email) + '<br>Phone: ' + ($('Webhook - Student Intake').item.json.body?.primary?.phone || $('Webhook - Student Intake').item.json.primary?.phone) + '<br>Address: ' + ($('Webhook - Student Intake').item.json.body?.primary?.address || $('Webhook - Student Intake').item.json.primary?.address) + '</p><p>ID 1: ' + ($('Webhook - Student Intake').item.json.body?.id1?.type || $('Webhook - Student Intake').item.json.id1?.type) + ' - ' + ($('Webhook - Student Intake').item.json.body?.id1?.number || $('Webhook - Student Intake').item.json.id1?.number) + '<br>ID 2: ' + ($('Webhook - Student Intake').item.json.body?.id2?.type || $('Webhook - Student Intake').item.json.id2?.type) + '</p><p>Education: ' + ($('Webhook - Student Intake').item.json.body?.education_doc || $('Webhook - Student Intake').item.json.education_doc) + '</p><p>Course: ' + ($('Webhook - Student Intake').item.json.body?.course || $('Webhook - Student Intake').item.json.course) + '<br>Fee Plan: ' + ($('Webhook - Student Intake').item.json.body?.fee?.plan || $('Webhook - Student Intake').item.json.fee?.plan) + '<br>Total: $' + ($('Webhook - Student Intake').item.json.body?.fee?.total || $('Webhook - Student Intake').item.json.fee?.total) + '<br>Upfront: ' + ($('Webhook - Student Intake').item.json.body?.fee?.upfront || $('Webhook - Student Intake').item.json.fee?.upfront) + '% at enrollment<br>Balance: ' + ($('Webhook - Student Intake').item.json.body?.fee?.balance || $('Webhook - Student Intake').item.json.fee?.balance) + '% at month ' + ($('Webhook - Student Intake').item.json.body?.fee?.month || $('Webhook - Student Intake').item.json.fee?.month) + '</p>' } }}",
+        "options": {}
+      },
+      "id": "ghl-email-new-client-submission",
+      "name": "GHL - Email New Client Submission",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        840,
+        300
+      ]
+    }
+  ],
+  "connections": {
+    "Webhook - Student Intake": {
+      "main": [
+        [
+          {
+            "node": "GHL - Upsert Student Intake",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "GHL - Upsert Student Intake": {
+      "main": [
+        [
+          {
+            "node": "GHL - Add Appendix Note",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "GHL - Add Appendix Note": {
+      "main": [
+        [
+          {
+            "node": "GHL - Email New Client Submission",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "pinData": {},
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "staticData": null,
+  "tags": [],
+  "triggerCount": 0
+}

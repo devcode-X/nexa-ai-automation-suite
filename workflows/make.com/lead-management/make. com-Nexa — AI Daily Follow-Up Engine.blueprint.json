@@ -1,0 +1,128 @@
+{
+    "name": "Nexa — AI Daily Follow-Up Engine",
+    "flow": [
+        {
+            "id": 1,
+            "module": "gateway:CustomWebHook",
+            "version": 1,
+            "parameters": {
+                "hook": 2260775,
+                "maxResults": 1
+            },
+            "mapper": {},
+            "metadata": {
+                "designer": {
+                    "x": 0,
+                    "y": 0
+                }
+            }
+        },
+        {
+            "id": 2,
+            "module": "http:ActionSendData",
+            "version": 3,
+            "parameters": {
+                "handleErrors": false
+            },
+            "mapper": {
+                "url": "https://api.anthropic.com/v1/messages",
+                "body": "{\"model\":\"claude-haiku-4-5-20251001\",\"max_tokens\":1024,\"messages\":[{\"role\":\"user\",\"content\":\"You are Nexa Consultancy AI Sales Follow-Up Agent. Write a personalized follow-up email to re-engage a lead who has not responded. Contact: name={{1.contact_name}}, email={{1.contact_email}}, immigration_status={{1.immigration_status}}, lead_tier={{1.lead_tier}}, eligible_amount={{1.eligible_amount}}, days_since_last_contact={{1.days_since_last_contact}}, last_contact_notes={{1.last_contact_notes}}, program_interest={{1.program_interest}}. Nexa offers up to $60K-$120K at 0% interest for skill upgrades in BC, zero fees to clients. The follow-up should feel personal, not automated. Reference their specific situation. Create urgency without being pushy. Return ONLY a valid JSON object with no markdown: recipient_email (the contact email), email_subject (subject line), email_html (full personalized HTML follow-up email), karan_alert (one-line: name-tier-days-action taken).\"}]}",
+                "method": "POST",
+                "headers": [
+                    {
+                        "name": "x-api-key",
+                        "value": "sk-ant-REDACTED_REPLACE_WITH_YOUR_KEY"
+                    },
+                    {
+                        "name": "anthropic-version",
+                        "value": "2023-06-01"
+                    },
+                    {
+                        "name": "content-type",
+                        "value": "application/json"
+                    }
+                ],
+                "parseResponse": true
+            },
+            "metadata": {
+                "designer": {
+                    "x": 300,
+                    "y": 0
+                }
+            }
+        },
+        {
+            "id": 3,
+            "module": "google-email:sendAnEmail",
+            "version": 4,
+            "parameters": {
+                "__IMTCONN__": 8323025
+            },
+            "mapper": {
+                "cc": [],
+                "to": [
+                    "{{parseJSON(2.body.content[1].text).recipient_email}}"
+                ],
+                "bcc": [],
+                "from": "karan9463verma@gmail.com",
+                "html": "{{parseJSON(2.body.content[1].text).email_html}}",
+                "subject": "{{parseJSON(2.body.content[1].text).email_subject}}",
+                "attachments": [],
+                "contentType": "html"
+            },
+            "metadata": {
+                "designer": {
+                    "x": 600,
+                    "y": 0
+                }
+            }
+        },
+        {
+            "id": 4,
+            "module": "http:ActionSendData",
+            "version": 3,
+            "parameters": {
+                "handleErrors": false
+            },
+            "mapper": {
+                "url": "https://hook.us2.make.com/cn424cy8r31gmmvq9b7bttiyyerbad1i",
+                "body": "{\"message\":\"FOLLOW-UP SENT\\n{{parseJSON(2.body.content[1].text).karan_alert}}\\nEmail sent to: {{parseJSON(2.body.content[1].text).recipient_email}}\\nSubject: {{parseJSON(2.body.content[1].text).email_subject}}\",\"alert_type\":\"follow_up_engine\",\"data\":{}}",
+                "method": "POST",
+                "headers": [
+                    {
+                        "name": "content-type",
+                        "value": "application/json"
+                    }
+                ],
+                "parseResponse": false
+            },
+            "metadata": {
+                "designer": {
+                    "x": 900,
+                    "y": 0
+                }
+            }
+        }
+    ],
+    "metadata": {
+        "instant": true,
+        "version": 1,
+        "scenario": {
+            "roundtrips": 1,
+            "maxErrors": 3,
+            "autoCommit": true,
+            "autoCommitTriggerLast": true,
+            "sequential": false,
+            "slots": null,
+            "confidential": false,
+            "dataloss": false,
+            "dlq": false,
+            "freshVariables": false
+        },
+        "designer": {
+            "orphans": []
+        },
+        "zone": "us2.make.com",
+        "notes": []
+    }
+}

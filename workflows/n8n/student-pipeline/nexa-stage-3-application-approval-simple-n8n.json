@@ -1,0 +1,126 @@
+{
+  "name": "Nexa - Stage 3 Application Approval",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "nexa-stage-3-application-approval",
+        "responseMode": "onReceived",
+        "options": {}
+      },
+      "id": "webhook-stage-3-application-approval",
+      "name": "Webhook - Stage 3 Application Approval",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        0,
+        300
+      ],
+      "webhookId": "nexa-stage-3-application-approval"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://services.leadconnectorhq.com/conversations/messages",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "Bearer YOUR_API_TOKEN_HERE"
+            },
+            {
+              "name": "Version",
+              "value": "2021-07-28"
+            },
+            {
+              "name": "Accept",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "contentType": "json",
+        "specifyBody": "json",
+        "jsonBody": "={{ { type: 'Email', contactId: 'gQhb5JvGathC8UfA9QzS', locationId: 'NRcuWE1OyAEdoOmZqjpu', emailFrom: 'karan@thenexaconsultancy.com', emailFromName: 'Nexa Partner Portal', emailReplyTo: 'karan@thenexaconsultancy.com', subject: 'Stage 3 Approved - ' + ($json.body?.contactName || $json.contactName) + ' | ' + ($json.body?.program || $json.program), html: '<div style=\"font-family:Arial,sans-serif;max-width:650px;\"><div style=\"background:#0a2540;padding:20px;text-align:center;\"><h2 style=\"color:#fff;margin:0;\">Stage 3 Application Approved</h2></div><div style=\"padding:28px;background:#fff;\"><h3 style=\"color:#0a2540;\">' + ($json.body?.contactName || $json.contactName) + '</h3><p>Reviewed by ' + ($json.body?.reviewedBy || $json.reviewedBy) + ' on ' + ($json.body?.ts || $json.ts) + '</p><p>Email: ' + ($json.body?.contactEmail || $json.contactEmail) + ' | Phone: ' + ($json.body?.contactPhone || $json.contactPhone) + '</p><p>Program: <strong>' + ($json.body?.program || $json.program) + '</strong> | College: ' + ($json.body?.college || $json.college) + '</p><p>Total Fees: <strong>$' + ($json.body?.totalFees || $json.totalFees) + '</strong> | Payment 1: $' + ($json.body?.payment1 || $json.payment1) + ' | Payment 2: $' + ($json.body?.payment2 || $json.payment2) + '</p><p>Sub-Affiliate: ' + ($json.body?.subAffiliateName || $json.subAffiliateName) + ' (' + ($json.body?.subAffiliateCode || $json.subAffiliateCode) + ')</p><p>Notes: ' + ($json.body?.reviewerNotes || $json.reviewerNotes) + '</p><p>Documents: ' + ($json.body?.docCount || $json.docCount) + ' uploaded - ' + ($json.body?.docNames || $json.docNames) + '</p></div></div>' } }}",
+        "options": {}
+      },
+      "id": "ghl-email-stage-3-approved",
+      "name": "GHL - Email Stage 3 Approved",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        280,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ 'https://services.leadconnectorhq.com/contacts/' + ($('Webhook - Stage 3 Application Approval').item.json.body?.contactId || $('Webhook - Stage 3 Application Approval').item.json.contactId) + '/tags' }}",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "Bearer YOUR_API_TOKEN_HERE"
+            },
+            {
+              "name": "Version",
+              "value": "2021-07-28"
+            },
+            {
+              "name": "Accept",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "contentType": "json",
+        "specifyBody": "json",
+        "jsonBody": "={{ { tags: ['stage-3-submitted'] } }}",
+        "options": {}
+      },
+      "id": "ghl-add-stage-3-submitted-tag",
+      "name": "GHL - Add Stage 3 Submitted Tag",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        560,
+        300
+      ]
+    }
+  ],
+  "connections": {
+    "Webhook - Stage 3 Application Approval": {
+      "main": [
+        [
+          {
+            "node": "GHL - Email Stage 3 Approved",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "GHL - Email Stage 3 Approved": {
+      "main": [
+        [
+          {
+            "node": "GHL - Add Stage 3 Submitted Tag",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "pinData": {},
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "staticData": null,
+  "tags": [],
+  "triggerCount": 0
+}

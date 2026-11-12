@@ -1,0 +1,171 @@
+{
+  "name": "Nexa - Daily Karan Briefing",
+  "nodes": [
+    {
+      "parameters": {
+        "interval": [
+          1
+        ],
+        "triggerTimes": {
+          "item": [
+            {
+              "mode": "everyDay",
+              "hour": 8,
+              "minute": 0
+            }
+          ]
+        }
+      },
+      "id": "c9a5a8e1-4ce2-4c1a-84bd-6c456acfb101",
+      "name": "Schedule - Daily Karan Briefing",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        220,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "url": "https://services.leadconnectorhq.com/opportunities/search?location_id=NRcuWE1OyAEdoOmZqjpu&pipeline_id=EOW1CWVHMkNmlbr4sI6O&status=open&limit=100",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "Bearer YOUR_API_TOKEN_HERE"
+            },
+            {
+              "name": "Version",
+              "value": "2021-07-28"
+            },
+            {
+              "name": "Accept",
+              "value": "application/json"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "7ce1d1f0-3f96-42db-8c42-e1d9b9080f31",
+      "name": "GHL - Fetch Open Opportunities",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        500,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "url": "https://services.leadconnectorhq.com/contacts/?locationId=NRcuWE1OyAEdoOmZqjpu&limit=100&query=",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "Bearer YOUR_API_TOKEN_HERE"
+            },
+            {
+              "name": "Version",
+              "value": "2021-07-28"
+            },
+            {
+              "name": "Accept",
+              "value": "application/json"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "15d4f34a-5613-4072-9bb7-8e9ed8d97535",
+      "name": "GHL - Fetch Contacts",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        780,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://services.leadconnectorhq.com/conversations/messages",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "Bearer YOUR_API_TOKEN_HERE"
+            },
+            {
+              "name": "Version",
+              "value": "2021-07-28"
+            },
+            {
+              "name": "Accept",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "contentType": "json",
+        "jsonBody": "={{ {\n  type: 'Email',\n  contactId: 'gQhb5JvGathC8UfA9QzS',\n  locationId: 'NRcuWE1OyAEdoOmZqjpu',\n  emailFrom: 'karan@thenexaconsultancy.com',\n  emailFromName: 'Nexa Daily Briefing',\n  emailReplyTo: 'karan@thenexaconsultancy.com',\n  subject: 'Nexa Daily Briefing',\n  html:\n    '<div style=\"font-family:Arial,sans-serif;font-size:15px;color:#222;line-height:1.5;\">' +\n    '<h2>Nexa Daily Briefing</h2>' +\n    '<p>Here is the latest snapshot from GoHighLevel.</p>' +\n    '<table cellpadding=\"8\" cellspacing=\"0\" border=\"0\" style=\"border-collapse:collapse;min-width:360px;\">' +\n    '<tr><td style=\"border:1px solid #ddd;\"><strong>Active College Enrollment deals</strong></td><td style=\"border:1px solid #ddd;\">' +\n    ($('GHL - Fetch Open Opportunities').item.json.data?.meta?.total || $('GHL - Fetch Open Opportunities').item.json.meta?.total || 0) +\n    '</td></tr>' +\n    '<tr><td style=\"border:1px solid #ddd;\"><strong>Total contacts in GHL</strong></td><td style=\"border:1px solid #ddd;\">' +\n    ($('GHL - Fetch Contacts').item.json.data?.meta?.total || $('GHL - Fetch Contacts').item.json.meta?.total || 0) +\n    '</td></tr>' +\n    '</table>' +\n    '<p>This briefing was generated automatically from the Nexa GHL workspace.</p>' +\n    '</div>'\n} }}",
+        "options": {}
+      },
+      "id": "5fa1fba1-83c3-4f20-9c26-36af433315cf",
+      "name": "GHL - Send Daily Briefing",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1060,
+        300
+      ]
+    }
+  ],
+  "connections": {
+    "Schedule - Daily Karan Briefing": {
+      "main": [
+        [
+          {
+            "node": "GHL - Fetch Open Opportunities",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "GHL - Fetch Open Opportunities": {
+      "main": [
+        [
+          {
+            "node": "GHL - Fetch Contacts",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "GHL - Fetch Contacts": {
+      "main": [
+        [
+          {
+            "node": "GHL - Send Daily Briefing",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "pinData": {},
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "staticData": null,
+  "tags": [],
+  "triggerCount": 1,
+  "updatedAt": "2026-06-05T00:00:00.000Z",
+  "versionId": "simple-karan-briefing-v1",
+  "active": false
+}

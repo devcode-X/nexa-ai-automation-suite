@@ -1,0 +1,79 @@
+{
+    "name": "Indeed — Gmail Application Trigger",
+    "flow": [
+        {
+            "id": 1,
+            "module": "google-email:TriggerNewEmail",
+            "version": 1,
+            "parameters": {
+                "criteria": "from:noreply@indeed.com",
+                "maxResults": 1,
+                "__IMTCONN__": 8323025
+            },
+            "mapper": {},
+            "metadata": {
+                "designer": {
+                    "x": 0,
+                    "y": 0
+                }
+            }
+        },
+        {
+            "id": 2,
+            "module": "http:ActionSendData",
+            "version": 3,
+            "parameters": {
+                "handleErrors": false,
+                "useNewZLibDeCompression": true
+            },
+            "mapper": {
+                "qs": [],
+                "url": "https://hook.us2.make.com/c6rlkj7iljcf7842hcwr68a3lc6bpj5o",
+                "data": "{\"applicant_name\": \"{{trim(replace(1.subject; \"/^(.+?) applied to.+$/\"; \"$1\"))}}\", \"applicant_email\": \"{{trim(replace(1.text; \"/[\\\\s\\\\S]*?[Ee]mail:\\\\s*([\\\\w.+\\\\-]+@[\\\\w\\\\-]+\\\\.[\\\\w.]+)[\\\\s\\\\S]*/\"; \"$1\"))}}\", \"role_applying_for\": \"{{trim(replace(1.subject; \"/^.+? applied to (.+?) at .+$/\"; \"$1\"))}}\"}",
+                "method": "post",
+                "headers": [
+                    {
+                        "name": "Content-Type",
+                        "value": "application/json"
+                    }
+                ],
+                "timeout": "",
+                "bodyType": "raw",
+                "contentType": "application/json",
+                "serializeUrl": false,
+                "shareCookies": false,
+                "parseResponse": false,
+                "followRedirect": true,
+                "useQuerystring": false,
+                "rejectUnauthorized": true
+            },
+            "metadata": {
+                "designer": {
+                    "x": 300,
+                    "y": 0
+                }
+            }
+        }
+    ],
+    "metadata": {
+        "instant": true,
+        "version": 1,
+        "scenario": {
+            "roundtrips": 1,
+            "maxErrors": 3,
+            "autoCommit": true,
+            "autoCommitTriggerLast": true,
+            "sequential": false,
+            "slots": null,
+            "confidential": false,
+            "dataloss": false,
+            "dlq": false,
+            "freshVariables": false
+        },
+        "designer": {
+            "orphans": []
+        },
+        "zone": "us2.make.com",
+        "notes": []
+    }
+}

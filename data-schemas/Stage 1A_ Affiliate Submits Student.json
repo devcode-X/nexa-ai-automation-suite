@@ -1,0 +1,451 @@
+{
+  "name": "Stage 1A: Affiliate Submits Student",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "stage1-affiliate",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "59f37474-4ffa-4aa9-b5f3-b45fe7e29c63",
+      "name": "Webhook - Affiliate Submit",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        -3888,
+        -144
+      ],
+      "webhookId": "stage1-affiliate"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "assign-001",
+              "name": "student_name",
+              "value": "={{ $json.body.student_name }}",
+              "type": "string"
+            },
+            {
+              "id": "assign-002",
+              "name": "student_email",
+              "value": "={{ $json.body.student_email }}",
+              "type": "string"
+            },
+            {
+              "id": "assign-003",
+              "name": "student_phone",
+              "value": "={{ $json.body.student_phone }}",
+              "type": "string"
+            },
+            {
+              "id": "assign-004",
+              "name": "affiliate_id",
+              "value": "={{ $json.body.affiliate_id }}",
+              "type": "string"
+            },
+            {
+              "id": "assign-005",
+              "name": "affiliate_name",
+              "value": "={{ $json.body.affiliate_name }}",
+              "type": "string"
+            },
+            {
+              "id": "assign-006",
+              "name": "country_of_origin",
+              "value": "={{ $json.body.country_of_origin }}",
+              "type": "string"
+            },
+            {
+              "id": "assign-007",
+              "name": "marital_status",
+              "value": "={{ $json.body.marital_status }}",
+              "type": "string"
+            },
+            {
+              "id": "assign-008",
+              "name": "notes",
+              "value": "={{ $json.body.notes }}",
+              "type": "string"
+            },
+            {
+              "id": "assign-009",
+              "name": "first_name",
+              "value": "={{ $json.body.student_name.split(' ')[0] }}",
+              "type": "string"
+            },
+            {
+              "id": "assign-010",
+              "name": "last_name",
+              "value": "={{ $json.body.student_name.split(' ').slice(1).join(' ') }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "526ffe77-39a8-42f9-b090-5318fe1739ca",
+      "name": "Set - Parse Input",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -3664,
+        -144
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "create",
+        "base": {
+          "__rl": true,
+          "value": "appHfwfxYbvwMJ1FU",
+          "mode": "id"
+        },
+        "table": {
+          "__rl": true,
+          "value": "tblzht5pGpkYcAgGq",
+          "mode": "id"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Student Name": "={{ $json.student_name }}",
+            "Email": "={{ $json.student_email }}",
+            "Phone": "={{ $json.student_phone }}",
+            "Affiliate ID": "={{ $json.affiliate_id }}",
+            "Affiliate Name": "={{ $json.affiliate_name }}",
+            "Country of Origin": "={{ $json.country_of_origin }}",
+            "Marital Status": "={{ $json.marital_status }}",
+            "Notes": "={{ $json.notes }}",
+            "Status": "Stage 1 Pending",
+            "Stage 1 Affiliate Done": true,
+            "Created At": "={{ new Date().toISOString() }}"
+          },
+          "matchingColumns": [],
+          "schema": []
+        },
+        "options": {}
+      },
+      "id": "47e3013c-44ce-4860-9b0a-8fabf59b1282",
+      "name": "Airtable - Create Student Record",
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 2.1,
+      "position": [
+        -3440,
+        -144
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://services.leadconnectorhq.com/contacts/",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "Bearer YOUR_API_TOKEN_HERE"
+            },
+            {
+              "name": "Version",
+              "value": "2021-07-28"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"firstName\": \"{{ $('Set - Parse Input').item.json.first_name }}\",\n  \"lastName\": \"{{ $('Set - Parse Input').item.json.last_name }}\",\n  \"email\": \"{{ $('Set - Parse Input').item.json.student_email }}\",\n  \"phone\": \"{{ $('Set - Parse Input').item.json.student_phone }}\",\n  \"locationId\": \"NRcuWE1OyAEdoOmZqjpu\",\n  \"tags\": [\"student-lead\", \"stage-1-pending\"]\n}",
+        "options": {}
+      },
+      "id": "320e1e70-4e76-416a-8814-c885f3f2bcd9",
+      "name": "HTTP - Create GHL Contact",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -3232,
+        -144
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "base": {
+          "__rl": true,
+          "value": "appHfwfxYbvwMJ1FU",
+          "mode": "id"
+        },
+        "table": {
+          "__rl": true,
+          "value": "tblzht5pGpkYcAgGq",
+          "mode": "id"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "GHL Contact ID": "={{ $json.contact.id }}"
+          },
+          "matchingColumns": [],
+          "schema": []
+        },
+        "options": {}
+      },
+      "id": "a2cad291-f28e-4913-9323-8ead07bf3daa",
+      "name": "Airtable - Update GHL Contact ID",
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 2.1,
+      "position": [
+        -3008,
+        -144
+      ]
+    },
+    {
+      "parameters": {
+        "sendTo": "={{ $('Set - Parse Input').item.json.student_email }}",
+        "subject": "Complete Your Application - Nexa Consultancy",
+        "emailType": "text",
+        "message": "=Hi {{ $('Set - Parse Input').item.json.student_name }},\n\nYour consultant has started your application with Nexa Consultancy. Please complete your details here:\n\nhttps://nexaconsultancy.app.n8n.cloud/webhook/stage1-student?record={{ $('Airtable - Create Student Record').item.json.id }}\n\nBest regards,\nNexa Consultancy Team",
+        "options": {}
+      },
+      "id": "1ecb585a-eb1b-4854-bb74-70de7773d12f",
+      "name": "Gmail - Send Student Invite",
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [
+        -2784,
+        -144
+      ],
+      "webhookId": "118a923a-7b95-4e5e-a5ea-f0907610c92d"
+    },
+    {
+      "parameters": {
+        "base": {
+          "__rl": true,
+          "value": "appHfwfxYbvwMJ1FU",
+          "mode": "id"
+        },
+        "table": {
+          "__rl": true,
+          "value": "tblzht5pGpkYcAgGq",
+          "mode": "id"
+        },
+        "id": "={{ $('Airtable - Create Student Record').item.json.id }}",
+        "options": {}
+      },
+      "id": "c889ac5e-0a54-4f38-b870-a3ee8ddace44",
+      "name": "Airtable - Check Stage 1 Status",
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 2.1,
+      "position": [
+        -2560,
+        -144
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 1
+          },
+          "conditions": [
+            {
+              "id": "cond-001",
+              "leftValue": "={{ $json.fields['Stage 1 Student Done'] }}",
+              "rightValue": true,
+              "operator": {
+                "type": "boolean",
+                "operation": "true"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "53e387fa-af18-464c-8d36-723f3c607a86",
+      "name": "IF - Stage 1 Student Done?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        -2352,
+        -144
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "base": {
+          "__rl": true,
+          "value": "appHfwfxYbvwMJ1FU",
+          "mode": "id"
+        },
+        "table": {
+          "__rl": true,
+          "value": "tblzht5pGpkYcAgGq",
+          "mode": "id"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Status": "Stage 1 Complete",
+            "Stage 1 Complete": true
+          },
+          "matchingColumns": [],
+          "schema": []
+        },
+        "options": {}
+      },
+      "id": "7f933283-3a82-43b1-9533-704f36303c69",
+      "name": "Airtable - Mark Stage 1 Complete",
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 2.1,
+      "position": [
+        -2128,
+        -240
+      ]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={\"success\":true,\"studentRecordId\":\"{{ $('Airtable - Create Student Record').item.json.id }}\",\"ghlContactId\":\"{{ $('HTTP - Create GHL Contact').item.json.contact.id }}\"}",
+        "options": {}
+      },
+      "id": "a368fd29-d093-4f71-a2ce-9ee58202cbdb",
+      "name": "Respond - Success",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [
+        -1904,
+        -144
+      ]
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Webhook - Affiliate Submit": {
+      "main": [
+        [
+          {
+            "node": "Set - Parse Input",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Set - Parse Input": {
+      "main": [
+        [
+          {
+            "node": "Airtable - Create Student Record",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Airtable - Create Student Record": {
+      "main": [
+        [
+          {
+            "node": "HTTP - Create GHL Contact",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP - Create GHL Contact": {
+      "main": [
+        [
+          {
+            "node": "Airtable - Update GHL Contact ID",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Airtable - Update GHL Contact ID": {
+      "main": [
+        [
+          {
+            "node": "Gmail - Send Student Invite",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Gmail - Send Student Invite": {
+      "main": [
+        [
+          {
+            "node": "Airtable - Check Stage 1 Status",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Airtable - Check Stage 1 Status": {
+      "main": [
+        [
+          {
+            "node": "IF - Stage 1 Student Done?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "IF - Stage 1 Student Done?": {
+      "main": [
+        [
+          {
+            "node": "Airtable - Mark Stage 1 Complete",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Respond - Success",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Airtable - Mark Stage 1 Complete": {
+      "main": [
+        [
+          {
+            "node": "Respond - Success",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "a3ddcabc-3c63-4da8-8c81-d3a248199435",
+  "meta": {
+    "instanceId": "7c23c5dcb11b2b083d9324cad06759160ac77b817b892eae8784a6c5025bb6df"
+  },
+  "id": "T1QWUt5hJgLnTGHT",
+  "tags": []
+}

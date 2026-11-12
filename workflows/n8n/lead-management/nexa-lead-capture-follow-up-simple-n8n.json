@@ -1,0 +1,336 @@
+{
+  "name": "Nexa - Lead Capture & Follow-up",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "nexa-lead-capture-follow-up",
+        "responseMode": "onReceived",
+        "options": {}
+      },
+      "id": "webhook-lead-capture",
+      "name": "Webhook - Lead Capture",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        0,
+        300
+      ],
+      "webhookId": "nexa-lead-capture-follow-up"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "string": [
+            {
+              "value1": "={{ $json.body?.email || $json.email }}",
+              "operation": "isNotEmpty"
+            }
+          ]
+        }
+      },
+      "id": "only-process-form-submissions",
+      "name": "Only Process Form Submissions",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [
+        260,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://services.leadconnectorhq.com/contacts/",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "Bearer YOUR_API_TOKEN_HERE"
+            },
+            {
+              "name": "Version",
+              "value": "2021-07-28"
+            },
+            {
+              "name": "Accept",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "contentType": "json",
+        "specifyBody": "json",
+        "jsonBody": "={{ { firstName: $json.body?.first_name || $json.first_name, lastName: $json.body?.last_name || $json.last_name, email: $json.body?.email || $json.email, locationId: 'NRcuWE1OyAEdoOmZqjpu' } }}",
+        "options": {}
+      },
+      "id": "ghl-create-contact",
+      "name": "GHL - Create Contact",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        540,
+        200
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://services.leadconnectorhq.com/opportunities/",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "Bearer YOUR_API_TOKEN_HERE"
+            },
+            {
+              "name": "Version",
+              "value": "2021-07-28"
+            },
+            {
+              "name": "Accept",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "contentType": "json",
+        "specifyBody": "json",
+        "jsonBody": "={{ { pipelineId: 'EOW1CWVHMkNmlbr4sI6O', pipelineStageId: '83ae729a-6b14-426d-928e-998de5b3b256', locationId: 'NRcuWE1OyAEdoOmZqjpu', contactId: $json.data?.contact?.id || $json.contact?.id, name: (($('Webhook - Lead Capture').item.json.body?.first_name || $('Webhook - Lead Capture').item.json.first_name) + ' ' + ($('Webhook - Lead Capture').item.json.body?.last_name || $('Webhook - Lead Capture').item.json.last_name) + ' - New Lead'), status: 'open', source: $('Webhook - Lead Capture').item.json.body?.lead_source || $('Webhook - Lead Capture').item.json.lead_source } }}",
+        "options": {}
+      },
+      "id": "ghl-create-opportunity",
+      "name": "GHL - Create Opportunity",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        820,
+        200
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://services.leadconnectorhq.com/conversations/messages",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "Bearer YOUR_API_TOKEN_HERE"
+            },
+            {
+              "name": "Version",
+              "value": "2021-07-28"
+            },
+            {
+              "name": "Accept",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "contentType": "json",
+        "specifyBody": "json",
+        "jsonBody": "={{ { type: 'Email', contactId: $('GHL - Create Contact').item.json.data?.contact?.id || $('GHL - Create Contact').item.json.contact?.id, subject: 'Welcome to Nexa, ' + ($('Webhook - Lead Capture').item.json.body?.first_name || $('Webhook - Lead Capture').item.json.first_name) + '!', html: '<p>Hi ' + ($('Webhook - Lead Capture').item.json.body?.first_name || $('Webhook - Lead Capture').item.json.first_name) + ',</p><p>Thank you for reaching out to Nexa! We have received your inquiry about <strong>' + ($('Webhook - Lead Capture').item.json.body?.loan_type || $('Webhook - Lead Capture').item.json.loan_type) + '</strong> and one of our consultants will be in touch within 24 hours.</p><p>In the meantime, feel free to reply to this email with any questions.</p><p>Best regards,<br><strong>The Nexa Team</strong></p>' } }}",
+        "options": {}
+      },
+      "id": "ghl-send-welcome-email",
+      "name": "GHL - Send Welcome Email",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1100,
+        200
+      ]
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "contact-id",
+              "name": "contactId",
+              "value": "={{ $('GHL - Create Contact').item.json.data?.contact?.id || $('GHL - Create Contact').item.json.contact?.id }}",
+              "type": "string"
+            },
+            {
+              "id": "email",
+              "name": "email",
+              "value": "={{ $('Webhook - Lead Capture').item.json.body?.email || $('Webhook - Lead Capture').item.json.email }}",
+              "type": "string"
+            },
+            {
+              "id": "phone",
+              "name": "phone",
+              "value": "={{ $('Webhook - Lead Capture').item.json.body?.phone || $('Webhook - Lead Capture').item.json.phone }}",
+              "type": "string"
+            },
+            {
+              "id": "first-name",
+              "name": "firstName",
+              "value": "={{ $('Webhook - Lead Capture').item.json.body?.first_name || $('Webhook - Lead Capture').item.json.first_name }}",
+              "type": "string"
+            },
+            {
+              "id": "loan-type",
+              "name": "loanType",
+              "value": "={{ $('Webhook - Lead Capture').item.json.body?.loan_type || $('Webhook - Lead Capture').item.json.loan_type }}",
+              "type": "string"
+            },
+            {
+              "id": "day1-sent",
+              "name": "day1Sent",
+              "value": false,
+              "type": "boolean"
+            },
+            {
+              "id": "day3-sent",
+              "name": "day3Sent",
+              "value": false,
+              "type": "boolean"
+            },
+            {
+              "id": "created-at",
+              "name": "createdAt",
+              "value": "={{ Math.floor(Date.now() / 1000) }}",
+              "type": "number"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "prepare-follow-up-record",
+      "name": "Prepare Follow-up Record",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        1380,
+        200
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "upsert",
+        "dataTableId": {
+          "__rl": true,
+          "value": "Nexa Lead Followups",
+          "mode": "name"
+        },
+        "matchType": "allConditions",
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "contactId",
+              "keyValue": "={{ $json.contactId }}"
+            }
+          ]
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "contactId": "={{ $json.contactId }}",
+            "email": "={{ $json.email }}",
+            "phone": "={{ $json.phone }}",
+            "firstName": "={{ $json.firstName }}",
+            "loanType": "={{ $json.loanType }}",
+            "day1Sent": "={{ $json.day1Sent }}",
+            "day3Sent": "={{ $json.day3Sent }}",
+            "createdAt": "={{ $json.createdAt }}"
+          },
+          "matchingColumns": [],
+          "schema": [],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "id": "save-follow-up-record",
+      "name": "Data Table - Save Follow-up Record",
+      "type": "n8n-nodes-base.dataTable",
+      "typeVersion": 1,
+      "position": [
+        1660,
+        200
+      ]
+    }
+  ],
+  "connections": {
+    "Webhook - Lead Capture": {
+      "main": [
+        [
+          {
+            "node": "Only Process Form Submissions",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Only Process Form Submissions": {
+      "main": [
+        [
+          {
+            "node": "GHL - Create Contact",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "GHL - Create Contact": {
+      "main": [
+        [
+          {
+            "node": "GHL - Create Opportunity",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "GHL - Create Opportunity": {
+      "main": [
+        [
+          {
+            "node": "GHL - Send Welcome Email",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "GHL - Send Welcome Email": {
+      "main": [
+        [
+          {
+            "node": "Prepare Follow-up Record",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Prepare Follow-up Record": {
+      "main": [
+        [
+          {
+            "node": "Data Table - Save Follow-up Record",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "pinData": {},
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "staticData": null,
+  "tags": [],
+  "triggerCount": 0
+}

@@ -1,0 +1,129 @@
+{
+    "name": "Nexa — Stage 3 Application Approval",
+    "flow": [
+        {
+            "id": 1,
+            "module": "gateway:CustomWebHook",
+            "version": 1,
+            "parameters": {
+                "hook": 2242761,
+                "maxResults": 1
+            },
+            "mapper": {},
+            "metadata": {
+                "designer": {
+                    "x": 0,
+                    "y": 0
+                }
+            }
+        },
+        {
+            "id": 2,
+            "module": "http:ActionSendData",
+            "version": 3,
+            "parameters": {
+                "handleErrors": false,
+                "useNewZLibDeCompress": true
+            },
+            "mapper": {
+                "url": "https://services.leadconnectorhq.com/conversations/messages",
+                "data": "{\"type\":\"Email\",\"contactId\":\"gQhb5JvGathC8UfA9QzS\",\"locationId\":\"NRcuWE1OyAEdoOmZqjpu\",\"emailFrom\":\"karan@thenexaconsultancy.com\",\"emailFromName\":\"Nexa Partner Portal\",\"emailReplyTo\":\"karan@thenexaconsultancy.com\",\"subject\":\"✅ Stage 3 Approved — {{1.contactName}} | {{1.program}}\",\"html\":\"<div style='font-family:Arial,sans-serif;max-width:650px;'><div style='background:#0a2540;padding:20px;text-align:center;'><h2 style='color:#fff;margin:0;'>Stage 3 Application Approved</h2></div><div style='padding:28px;background:#fff;'><h3 style='color:#0a2540;'>{{1.contactName}}</h3><p>Reviewed by {{1.reviewedBy}} on {{1.ts}}</p><p>Email: {{1.contactEmail}} | Phone: {{1.contactPhone}}</p><p>Program: <strong>{{1.program}}</strong> | College: {{1.college}}</p><p>Total Fees: <strong>${{1.totalFees}}</strong> | Payment 1: ${{1.payment1}} | Payment 2: ${{1.payment2}}</p><p>Sub-Affiliate: {{1.subAffiliateName}} ({{1.subAffiliateCode}})</p><p>Notes: {{1.reviewerNotes}}</p><p>Documents: {{1.docCount}} uploaded — {{1.docNames}}</p></div></div>\"}",
+                "gzip": true,
+                "method": "post",
+                "headers": [
+                    {
+                        "name": "Authorization",
+                        "value": "Bearer YOUR_API_TOKEN_HERE"
+                    },
+                    {
+                        "name": "Version",
+                        "value": "2021-07-28"
+                    },
+                    {
+                        "name": "Content-Type",
+                        "value": "application/json"
+                    }
+                ],
+                "useMtls": false,
+                "bodyType": "raw",
+                "contentType": "application/json",
+                "serializeUrl": false,
+                "shareCookies": false,
+                "parseResponse": true,
+                "followRedirect": true,
+                "useQuerystring": false,
+                "followAllRedirects": false,
+                "rejectUnauthorized": true
+            },
+            "metadata": {
+                "designer": {
+                    "x": 300,
+                    "y": 0
+                }
+            }
+        },
+        {
+            "id": 3,
+            "module": "http:ActionSendData",
+            "version": 3,
+            "parameters": {
+                "handleErrors": false,
+                "useNewZLibDeCompress": true
+            },
+            "mapper": {
+                "url": "https://services.leadconnectorhq.com/contacts/{{1.contactId}}/tags",
+                "data": "{\"tags\":[\"stage-3-submitted\"]}",
+                "gzip": true,
+                "method": "post",
+                "headers": [
+                    {
+                        "name": "Authorization",
+                        "value": "Bearer YOUR_API_TOKEN_HERE"
+                    },
+                    {
+                        "name": "Version",
+                        "value": "2021-07-28"
+                    },
+                    {
+                        "name": "Content-Type",
+                        "value": "application/json"
+                    }
+                ],
+                "useMtls": false,
+                "bodyType": "raw",
+                "contentType": "application/json",
+                "serializeUrl": false,
+                "shareCookies": false,
+                "parseResponse": true,
+                "followRedirect": true,
+                "useQuerystring": false,
+                "followAllRedirects": false,
+                "rejectUnauthorized": true
+            },
+            "metadata": {
+                "designer": {
+                    "x": 600,
+                    "y": 0
+                }
+            }
+        }
+    ],
+    "metadata": {
+        "instant": true,
+        "version": 1,
+        "scenario": {
+            "roundtrips": 1,
+            "maxErrors": 3,
+            "autoCommit": true,
+            "autoCommitTriggerLast": true,
+            "sequential": false,
+            "slots": null,
+            "dlq": false
+        },
+        "designer": {
+            "orphans": []
+        },
+        "zone": "us2.make.com",
+        "notes": []
+    }
+}

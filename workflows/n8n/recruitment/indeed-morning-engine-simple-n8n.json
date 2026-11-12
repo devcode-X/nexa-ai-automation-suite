@@ -1,0 +1,697 @@
+{
+  "name": "Indeed - Morning Engine",
+  "nodes": [
+    {
+      "parameters": {
+        "interval": [
+          1
+        ],
+        "triggerTimes": {
+          "item": [
+            {
+              "mode": "everyDay",
+              "hour": 8,
+              "minute": 0
+            }
+          ]
+        }
+      },
+      "id": "schedule-morning-engine",
+      "name": "Schedule - Morning Engine",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        180,
+        360
+      ]
+    },
+    {
+      "parameters": {
+        "resource": "table",
+        "operation": "create",
+        "tableName": "Indeed Interview Slots",
+        "columns": {
+          "column": [
+            {
+              "name": "slot_datetime",
+              "type": "date"
+            },
+            {
+              "name": "is_booked",
+              "type": "boolean"
+            },
+            {
+              "name": "job_title",
+              "type": "string"
+            },
+            {
+              "name": "candidate_name",
+              "type": "string"
+            },
+            {
+              "name": "candidate_email",
+              "type": "string"
+            },
+            {
+              "name": "booking_date",
+              "type": "date"
+            },
+            {
+              "name": "calendar_event_id",
+              "type": "string"
+            },
+            {
+              "name": "rsvp_accepted",
+              "type": "boolean"
+            },
+            {
+              "name": "nudge_sent",
+              "type": "boolean"
+            },
+            {
+              "name": "follow_up_1_sent",
+              "type": "boolean"
+            },
+            {
+              "name": "follow_up_2_sent",
+              "type": "boolean"
+            },
+            {
+              "name": "follow_up_3_sent",
+              "type": "boolean"
+            },
+            {
+              "name": "reminder_1hr_sent",
+              "type": "boolean"
+            },
+            {
+              "name": "reminder_4hr_sent",
+              "type": "boolean"
+            },
+            {
+              "name": "reminder_day_sent",
+              "type": "boolean"
+            }
+          ]
+        },
+        "options": {
+          "createIfNotExists": true
+        }
+      },
+      "id": "data-table-ensure-interview-slots",
+      "name": "Data Table - Ensure Interview Slots",
+      "type": "n8n-nodes-base.dataTable",
+      "typeVersion": 1.1,
+      "position": [
+        440,
+        360
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "get",
+        "dataTableId": {
+          "__rl": true,
+          "value": "Indeed Interview Slots",
+          "mode": "name",
+          "cachedResultName": "Indeed Interview Slots"
+        },
+        "matchType": "allConditions",
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "is_booked",
+              "condition": "eq",
+              "keyValue": true
+            },
+            {
+              "keyName": "slot_datetime",
+              "condition": "gt",
+              "keyValue": "={{ $now.toISO() }}"
+            },
+            {
+              "keyName": "nudge_sent",
+              "condition": "neq",
+              "keyValue": true
+            },
+            {
+              "keyName": "rsvp_accepted",
+              "condition": "neq",
+              "keyValue": true
+            }
+          ]
+        },
+        "returnAll": true,
+        "limit": 30
+      },
+      "id": "data-table-find-nudge-candidates",
+      "name": "Data Table - Find Nudge Candidates",
+      "type": "n8n-nodes-base.dataTable",
+      "typeVersion": 1.1,
+      "position": [
+        740,
+        -120
+      ]
+    },
+    {
+      "parameters": {
+        "resource": "message",
+        "operation": "send",
+        "sendTo": "={{ $json.candidate_email }}",
+        "subject": "Quick Reminder - Your Interview at Nexa Marketing Inc.",
+        "emailType": "html",
+        "message": "={{ '<div style=\"font-family:Arial,sans-serif;max-width:600px;margin:0 auto;padding:32px 24px;\"><p style=\"font-size:16px;color:#333;\">Hi <strong>' + $json.candidate_name + '</strong>,</p><p style=\"font-size:15px;color:#444;line-height:1.7;\">Just a friendly reminder that you have an upcoming interview for the <strong>' + $json.job_title + '</strong> position at <strong>Nexa Marketing Inc.</strong>!</p><div style=\"background:#f5f7ff;border-left:4px solid #1a2744;padding:16px 20px;border-radius:4px;margin:20px 0;\"><p style=\"margin:0;color:#1a2744;\"><strong>Date:</strong> ' + DateTime.fromISO($json.slot_datetime).setZone('America/Vancouver').toFormat('cccc, LLLL d, yyyy') + '<br><strong>Time:</strong> ' + DateTime.fromISO($json.slot_datetime).setZone('America/Vancouver').toFormat('h:mm a') + ' - ' + DateTime.fromISO($json.slot_datetime).plus({ minutes: 30 }).setZone('America/Vancouver').toFormat('h:mm a') + ' Pacific time<br><strong>Location:</strong> 12899 80 Ave #203, Surrey, BC V3W 0E6</p></div><p style=\"font-size:15px;color:#444;line-height:1.7;\">Please <strong>reply to this email</strong> to let us know you will be there. Cannot make this time? Just reply and we will find something better - available <strong>Mon-Fri, 1:00-2:30 PM Pacific time</strong>.</p><p style=\"font-size:15px;color:#444;\">Looking forward to meeting you soon!</p><br><p style=\"color:#666;font-size:14px;\">Warm regards,<br><strong>Karan Verma</strong><br>Nexa Marketing Inc.<br>12899 80 Ave #203, Surrey, BC<br>karan9463verma@gmail.com</p></div>' }}",
+        "options": {
+          "senderName": "Karan Verma",
+          "appendAttribution": false
+        }
+      },
+      "id": "gmail-send-nudge",
+      "name": "Gmail - Send Nudge",
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [
+        1020,
+        -120
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "dataTableId": {
+          "__rl": true,
+          "value": "Indeed Interview Slots",
+          "mode": "name",
+          "cachedResultName": "Indeed Interview Slots"
+        },
+        "matchType": "allConditions",
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "id",
+              "condition": "eq",
+              "keyValue": "={{ $('Data Table - Find Nudge Candidates').item.json.id }}"
+            }
+          ]
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "nudge_sent": true
+          },
+          "matchingColumns": [],
+          "schema": []
+        },
+        "options": {}
+      },
+      "id": "data-table-mark-nudge-sent",
+      "name": "Data Table - Mark Nudge Sent",
+      "type": "n8n-nodes-base.dataTable",
+      "typeVersion": 1.1,
+      "position": [
+        1300,
+        -120
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "get",
+        "dataTableId": {
+          "__rl": true,
+          "value": "Indeed Interview Slots",
+          "mode": "name",
+          "cachedResultName": "Indeed Interview Slots"
+        },
+        "matchType": "allConditions",
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "is_booked",
+              "condition": "eq",
+              "keyValue": true
+            },
+            {
+              "keyName": "slot_datetime",
+              "condition": "gt",
+              "keyValue": "={{ $now.toISO() }}"
+            },
+            {
+              "keyName": "booking_date",
+              "condition": "lt",
+              "keyValue": "={{ $now.minus({ days: 3 }).toISO() }}"
+            },
+            {
+              "keyName": "follow_up_1_sent",
+              "condition": "neq",
+              "keyValue": true
+            },
+            {
+              "keyName": "rsvp_accepted",
+              "condition": "neq",
+              "keyValue": true
+            }
+          ]
+        },
+        "returnAll": true,
+        "limit": 30
+      },
+      "id": "data-table-find-follow-up-1",
+      "name": "Data Table - Find Follow-Up 1",
+      "type": "n8n-nodes-base.dataTable",
+      "typeVersion": 1.1,
+      "position": [
+        740,
+        200
+      ]
+    },
+    {
+      "parameters": {
+        "resource": "message",
+        "operation": "send",
+        "sendTo": "={{ $json.candidate_email }}",
+        "subject": "Still thinking about the role? Your interview is coming up!",
+        "emailType": "html",
+        "message": "={{ '<div style=\"font-family:Arial,sans-serif;max-width:600px;margin:0 auto;padding:32px 24px;\"><p style=\"font-size:16px;color:#333;\">Hi <strong>' + $json.candidate_name + '</strong>,</p><p style=\"font-size:15px;color:#444;line-height:1.7;\">Just checking in - we sent you an interview invitation a few days ago and wanted to make sure it did not get lost in your inbox!</p><p style=\"font-size:15px;color:#444;line-height:1.7;\">We are genuinely excited about your application and have a spot reserved for you:</p><div style=\"background:#f5f7ff;border-left:4px solid #1a2744;padding:16px 20px;border-radius:4px;margin:20px 0;\"><p style=\"margin:0;color:#1a2744;\"><strong>' + DateTime.fromISO($json.slot_datetime).setZone('America/Vancouver').toFormat('cccc, LLLL d, yyyy') + '</strong><br><strong>' + DateTime.fromISO($json.slot_datetime).setZone('America/Vancouver').toFormat('h:mm a') + ' - ' + DateTime.fromISO($json.slot_datetime).plus({ minutes: 30 }).setZone('America/Vancouver').toFormat('h:mm a') + ' Pacific time</strong><br>12899 80 Ave #203, Surrey, BC V3W 0E6</p></div><p style=\"font-size:15px;color:#444;line-height:1.7;\">Just <strong>reply to this email</strong> to confirm you will be there. If this time does not work, just reply - available <strong>Mon-Fri, 1:00-2:30 PM Pacific time</strong>.</p><p style=\"font-size:15px;color:#444;\">We would love to meet you!</p><br><p style=\"color:#666;font-size:14px;\">Warm regards,<br><strong>Karan Verma</strong><br>Nexa Marketing Inc.</p></div>' }}",
+        "options": {
+          "senderName": "Karan Verma",
+          "appendAttribution": false
+        }
+      },
+      "id": "gmail-send-follow-up-1",
+      "name": "Gmail - Send Follow-Up 1",
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [
+        1020,
+        200
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "dataTableId": {
+          "__rl": true,
+          "value": "Indeed Interview Slots",
+          "mode": "name",
+          "cachedResultName": "Indeed Interview Slots"
+        },
+        "matchType": "allConditions",
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "id",
+              "condition": "eq",
+              "keyValue": "={{ $('Data Table - Find Follow-Up 1').item.json.id }}"
+            }
+          ]
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "follow_up_1_sent": true
+          },
+          "matchingColumns": [],
+          "schema": []
+        },
+        "options": {}
+      },
+      "id": "data-table-mark-follow-up-1",
+      "name": "Data Table - Mark Follow-Up 1",
+      "type": "n8n-nodes-base.dataTable",
+      "typeVersion": 1.1,
+      "position": [
+        1300,
+        200
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "get",
+        "dataTableId": {
+          "__rl": true,
+          "value": "Indeed Interview Slots",
+          "mode": "name",
+          "cachedResultName": "Indeed Interview Slots"
+        },
+        "matchType": "allConditions",
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "is_booked",
+              "condition": "eq",
+              "keyValue": true
+            },
+            {
+              "keyName": "slot_datetime",
+              "condition": "gt",
+              "keyValue": "={{ $now.toISO() }}"
+            },
+            {
+              "keyName": "booking_date",
+              "condition": "lt",
+              "keyValue": "={{ $now.minus({ days: 7 }).toISO() }}"
+            },
+            {
+              "keyName": "follow_up_1_sent",
+              "condition": "eq",
+              "keyValue": true
+            },
+            {
+              "keyName": "follow_up_2_sent",
+              "condition": "neq",
+              "keyValue": true
+            },
+            {
+              "keyName": "rsvp_accepted",
+              "condition": "neq",
+              "keyValue": true
+            }
+          ]
+        },
+        "returnAll": true,
+        "limit": 30
+      },
+      "id": "data-table-find-follow-up-2",
+      "name": "Data Table - Find Follow-Up 2",
+      "type": "n8n-nodes-base.dataTable",
+      "typeVersion": 1.1,
+      "position": [
+        740,
+        520
+      ]
+    },
+    {
+      "parameters": {
+        "resource": "message",
+        "operation": "send",
+        "sendTo": "={{ $json.candidate_email }}",
+        "subject": "We still want to meet you - Your interview spot is saved",
+        "emailType": "html",
+        "message": "={{ '<div style=\"font-family:Arial,sans-serif;max-width:600px;margin:0 auto;padding:32px 24px;\"><p style=\"font-size:16px;color:#333;\">Hi <strong>' + $json.candidate_name + '</strong>,</p><p style=\"font-size:15px;color:#444;line-height:1.7;\">We wanted to follow up once more because we genuinely believe you could be a great fit for the <strong>' + $json.job_title + '</strong> role at Nexa Marketing Inc., and we do not want you to miss this opportunity!</p><p style=\"font-size:15px;color:#444;line-height:1.7;\">Your spot is still being held:</p><div style=\"background:#f5f7ff;border-left:4px solid #1a2744;padding:16px 20px;border-radius:4px;margin:20px 0;\"><p style=\"margin:0;color:#1a2744;\"><strong>' + DateTime.fromISO($json.slot_datetime).setZone('America/Vancouver').toFormat('cccc, LLLL d, yyyy') + '</strong><br><strong>' + DateTime.fromISO($json.slot_datetime).setZone('America/Vancouver').toFormat('h:mm a') + ' - ' + DateTime.fromISO($json.slot_datetime).plus({ minutes: 30 }).setZone('America/Vancouver').toFormat('h:mm a') + ' Pacific time</strong><br>12899 80 Ave #203, Surrey, BC V3W 0E6</p></div><p style=\"font-size:15px;color:#444;line-height:1.7;\">It is just <strong>30 minutes</strong> - come say hi and let us see if it is a great match!</p><p style=\"font-size:15px;color:#444;line-height:1.7;\">If this time no longer works, <strong>reply</strong> and we will sort it out. Available <strong>Mon-Fri, 1:00-2:30 PM Pacific time</strong>.</p><br><p style=\"color:#666;font-size:14px;\">Warm regards,<br><strong>Karan Verma</strong><br>Nexa Marketing Inc.</p></div>' }}",
+        "options": {
+          "senderName": "Karan Verma",
+          "appendAttribution": false
+        }
+      },
+      "id": "gmail-send-follow-up-2",
+      "name": "Gmail - Send Follow-Up 2",
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [
+        1020,
+        520
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "dataTableId": {
+          "__rl": true,
+          "value": "Indeed Interview Slots",
+          "mode": "name",
+          "cachedResultName": "Indeed Interview Slots"
+        },
+        "matchType": "allConditions",
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "id",
+              "condition": "eq",
+              "keyValue": "={{ $('Data Table - Find Follow-Up 2').item.json.id }}"
+            }
+          ]
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "follow_up_2_sent": true
+          },
+          "matchingColumns": [],
+          "schema": []
+        },
+        "options": {}
+      },
+      "id": "data-table-mark-follow-up-2",
+      "name": "Data Table - Mark Follow-Up 2",
+      "type": "n8n-nodes-base.dataTable",
+      "typeVersion": 1.1,
+      "position": [
+        1300,
+        520
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "get",
+        "dataTableId": {
+          "__rl": true,
+          "value": "Indeed Interview Slots",
+          "mode": "name",
+          "cachedResultName": "Indeed Interview Slots"
+        },
+        "matchType": "allConditions",
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "is_booked",
+              "condition": "eq",
+              "keyValue": true
+            },
+            {
+              "keyName": "slot_datetime",
+              "condition": "gt",
+              "keyValue": "={{ $now.toISO() }}"
+            },
+            {
+              "keyName": "booking_date",
+              "condition": "lt",
+              "keyValue": "={{ $now.minus({ days: 15 }).toISO() }}"
+            },
+            {
+              "keyName": "follow_up_2_sent",
+              "condition": "eq",
+              "keyValue": true
+            },
+            {
+              "keyName": "follow_up_3_sent",
+              "condition": "neq",
+              "keyValue": true
+            },
+            {
+              "keyName": "rsvp_accepted",
+              "condition": "neq",
+              "keyValue": true
+            }
+          ]
+        },
+        "returnAll": true,
+        "limit": 30
+      },
+      "id": "data-table-find-follow-up-3",
+      "name": "Data Table - Find Follow-Up 3",
+      "type": "n8n-nodes-base.dataTable",
+      "typeVersion": 1.1,
+      "position": [
+        740,
+        840
+      ]
+    },
+    {
+      "parameters": {
+        "resource": "message",
+        "operation": "send",
+        "sendTo": "={{ $json.candidate_email }}",
+        "subject": "Last chance - We're saving your interview spot at Nexa",
+        "emailType": "html",
+        "message": "={{ '<div style=\"font-family:Arial,sans-serif;max-width:600px;margin:0 auto;padding:32px 24px;\"><p style=\"font-size:16px;color:#333;\">Hi <strong>' + $json.candidate_name + '</strong>,</p><p style=\"font-size:15px;color:#444;line-height:1.7;\">This is our final follow-up about the <strong>' + $json.job_title + '</strong> position at Nexa Marketing Inc.</p><p style=\"font-size:15px;color:#444;line-height:1.7;\">We have been holding this spot just for you:</p><div style=\"background:#f5f7ff;border-left:4px solid #1a2744;padding:16px 20px;border-radius:4px;margin:20px 0;\"><p style=\"margin:0;color:#1a2744;\"><strong>' + DateTime.fromISO($json.slot_datetime).setZone('America/Vancouver').toFormat('cccc, LLLL d, yyyy') + '</strong><br><strong>' + DateTime.fromISO($json.slot_datetime).setZone('America/Vancouver').toFormat('h:mm a') + ' to ' + DateTime.fromISO($json.slot_datetime).plus({ minutes: 30 }).setZone('America/Vancouver').toFormat('h:mm a') + ' Pacific time</strong><br>12899 80 Ave #203, Surrey, BC V3W 0E6</p></div><p style=\"font-size:15px;color:#444;line-height:1.7;\">If you are still interested, please reply to confirm. It is only 30 minutes and could be a great opportunity!</p><p style=\"font-size:15px;color:#444;line-height:1.7;\">If your situation has changed, we completely understand - just let us know.</p><p style=\"font-size:15px;color:#444;\">Wishing you all the best.</p><br><p style=\"color:#666;font-size:14px;\">Warm regards,<br><strong>Karan Verma</strong><br>Nexa Marketing Inc.<br>karan9463verma@gmail.com</p></div>' }}",
+        "options": {
+          "senderName": "Karan Verma",
+          "appendAttribution": false
+        }
+      },
+      "id": "gmail-send-follow-up-3",
+      "name": "Gmail - Send Follow-Up 3",
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [
+        1020,
+        840
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "dataTableId": {
+          "__rl": true,
+          "value": "Indeed Interview Slots",
+          "mode": "name",
+          "cachedResultName": "Indeed Interview Slots"
+        },
+        "matchType": "allConditions",
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "id",
+              "condition": "eq",
+              "keyValue": "={{ $('Data Table - Find Follow-Up 3').item.json.id }}"
+            }
+          ]
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "follow_up_3_sent": true
+          },
+          "matchingColumns": [],
+          "schema": []
+        },
+        "options": {}
+      },
+      "id": "data-table-mark-follow-up-3",
+      "name": "Data Table - Mark Follow-Up 3",
+      "type": "n8n-nodes-base.dataTable",
+      "typeVersion": 1.1,
+      "position": [
+        1300,
+        840
+      ]
+    }
+  ],
+  "connections": {
+    "Schedule - Morning Engine": {
+      "main": [
+        [
+          {
+            "node": "Data Table - Ensure Interview Slots",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Data Table - Ensure Interview Slots": {
+      "main": [
+        [
+          {
+            "node": "Data Table - Find Nudge Candidates",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Data Table - Find Follow-Up 1",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Data Table - Find Follow-Up 2",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Data Table - Find Follow-Up 3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Data Table - Find Nudge Candidates": {
+      "main": [
+        [
+          {
+            "node": "Gmail - Send Nudge",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Gmail - Send Nudge": {
+      "main": [
+        [
+          {
+            "node": "Data Table - Mark Nudge Sent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Data Table - Find Follow-Up 1": {
+      "main": [
+        [
+          {
+            "node": "Gmail - Send Follow-Up 1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Gmail - Send Follow-Up 1": {
+      "main": [
+        [
+          {
+            "node": "Data Table - Mark Follow-Up 1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Data Table - Find Follow-Up 2": {
+      "main": [
+        [
+          {
+            "node": "Gmail - Send Follow-Up 2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Gmail - Send Follow-Up 2": {
+      "main": [
+        [
+          {
+            "node": "Data Table - Mark Follow-Up 2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Data Table - Find Follow-Up 3": {
+      "main": [
+        [
+          {
+            "node": "Gmail - Send Follow-Up 3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Gmail - Send Follow-Up 3": {
+      "main": [
+        [
+          {
+            "node": "Data Table - Mark Follow-Up 3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "pinData": {},
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "staticData": null,
+  "tags": [],
+  "triggerCount": 1,
+  "updatedAt": "2026-06-09T00:00:00.000Z",
+  "versionId": "simple-indeed-morning-engine-v1",
+  "active": false
+}

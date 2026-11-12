@@ -1,0 +1,532 @@
+{
+  "name": "Stage 1A: Affiliate Submits Student - Data Table",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "stage1-affiliate",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "webhook-affiliate-submit",
+      "name": "Webhook - Affiliate Submit",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        -3888,
+        -144
+      ],
+      "webhookId": "stage1-affiliate"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "assign-001",
+              "name": "student_name",
+              "value": "={{ $json.body.firstName }}",
+              "type": "string"
+            },
+            {
+              "id": "assign-002",
+              "name": "student_email",
+              "value": "={{ $json.body.email }}",
+              "type": "string"
+            },
+            {
+              "id": "assign-003",
+              "name": "student_phone",
+              "value": "={{ $json.body.phone }}",
+              "type": "string"
+            },
+            {
+              "id": "assign-004",
+              "name": "affiliate_id",
+              "value": "={{ $json.body.affiliateId }}",
+              "type": "string"
+            },
+            {
+              "id": "assign-005",
+              "name": "country_of_origin",
+              "value": "={{ $json.body.country }}",
+              "type": "string"
+            },
+            {
+              "id": "assign-006",
+              "name": "loan_type",
+              "value": "={{ $json.body.loanType }}",
+              "type": "string"
+            },
+            {
+              "id": "assign-007",
+              "name": "first_name",
+              "value": "={{ $json.body.firstName }}",
+              "type": "string"
+            },
+            {
+              "id": "assign-008",
+              "name": "last_name",
+              "value": "={{ $json.body.lastName }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "set-parse-input",
+      "name": "Set - Parse Input",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -3664,
+        -144
+      ]
+    },
+    {
+      "parameters": {
+        "resource": "table",
+        "operation": "create",
+        "tableName": "Stage 1 Students",
+        "columns": {
+          "column": [
+            {
+              "name": "student_name",
+              "type": "string"
+            },
+            {
+              "name": "student_email",
+              "type": "string"
+            },
+            {
+              "name": "student_phone",
+              "type": "string"
+            },
+            {
+              "name": "affiliate_id",
+              "type": "string"
+            },
+            {
+              "name": "country_of_origin",
+              "type": "string"
+            },
+            {
+              "name": "loan_type",
+              "type": "string"
+            },
+            {
+              "name": "status",
+              "type": "string"
+            },
+            {
+              "name": "stage1_affiliate_done",
+              "type": "boolean"
+            },
+            {
+              "name": "stage1_student_done",
+              "type": "boolean"
+            },
+            {
+              "name": "stage1_complete",
+              "type": "boolean"
+            },
+            {
+              "name": "ghl_contact_id",
+              "type": "string"
+            },
+            {
+              "name": "created_at",
+              "type": "date"
+            }
+          ]
+        },
+        "options": {
+          "createIfNotExists": true
+        }
+      },
+      "id": "data-table-ensure-students-table",
+      "name": "Data Table - Ensure Students Table",
+      "type": "n8n-nodes-base.dataTable",
+      "typeVersion": 1.1,
+      "position": [
+        -3440,
+        -144
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "insert",
+        "dataTableId": {
+          "__rl": true,
+          "value": "Stage 1 Students",
+          "mode": "name",
+          "cachedResultName": "Stage 1 Students"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "student_name": "={{ $('Set - Parse Input').item.json.student_name }}",
+            "student_email": "={{ $('Set - Parse Input').item.json.student_email }}",
+            "student_phone": "={{ $('Set - Parse Input').item.json.student_phone }}",
+            "affiliate_id": "={{ $('Set - Parse Input').item.json.affiliate_id }}",
+            "country_of_origin": "={{ $('Set - Parse Input').item.json.country_of_origin }}",
+            "loan_type": "={{ $('Set - Parse Input').item.json.loan_type }}",
+            "status": "Stage 1 Pending",
+            "stage1_affiliate_done": true,
+            "stage1_student_done": false,
+            "stage1_complete": false,
+            "ghl_contact_id": "",
+            "created_at": "={{ new Date().toISOString() }}"
+          },
+          "matchingColumns": [],
+          "schema": []
+        },
+        "options": {}
+      },
+      "id": "data-table-create-student-record",
+      "name": "Data Table - Create Student Record",
+      "type": "n8n-nodes-base.dataTable",
+      "typeVersion": 1.1,
+      "position": [
+        -3216,
+        -144
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://services.leadconnectorhq.com/contacts/",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "Bearer YOUR_API_TOKEN_HERE"
+            },
+            {
+              "name": "Version",
+              "value": "2021-07-28"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "contentType": "json",
+        "specifyBody": "json",
+        "jsonBody": "={{ { firstName: $('Set - Parse Input').item.json.first_name, lastName: $('Set - Parse Input').item.json.last_name, email: $('Set - Parse Input').item.json.student_email, phone: $('Set - Parse Input').item.json.student_phone, locationId: 'NRcuWE1OyAEdoOmZqjpu', tags: ['student-lead', 'stage-1-pending'] } }}",
+        "options": {}
+      },
+      "id": "http-create-ghl-contact",
+      "name": "HTTP - Create GHL Contact",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -2992,
+        -144
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "dataTableId": {
+          "__rl": true,
+          "value": "Stage 1 Students",
+          "mode": "name",
+          "cachedResultName": "Stage 1 Students"
+        },
+        "matchType": "allConditions",
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "id",
+              "condition": "eq",
+              "keyValue": "={{ $('Data Table - Create Student Record').item.json.id }}"
+            }
+          ]
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "ghl_contact_id": "={{ $json.contact?.id || $json.data?.contact?.id || $json.id }}"
+          },
+          "matchingColumns": [],
+          "schema": []
+        },
+        "options": {}
+      },
+      "id": "data-table-update-ghl-contact-id",
+      "name": "Data Table - Update GHL Contact ID",
+      "type": "n8n-nodes-base.dataTable",
+      "typeVersion": 1.1,
+      "position": [
+        -2768,
+        -144
+      ]
+    },
+    {
+      "parameters": {
+        "sendTo": "={{ $('Set - Parse Input').item.json.student_email }}",
+        "subject": "Complete Your Application - Nexa Consultancy",
+        "emailType": "text",
+        "message": "=Hi {{ $('Set - Parse Input').item.json.student_name }},\n\nYour consultant has started your application with Nexa Consultancy. Please complete your details here:\n\nhttps://nexaconsultancy.app.n8n.cloud/webhook/stage1-student?record={{ $('Data Table - Create Student Record').item.json.id }}\n\nBest regards,\nNexa Consultancy Team",
+        "options": {}
+      },
+      "id": "gmail-send-student-invite",
+      "name": "Gmail - Send Student Invite",
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [
+        -2544,
+        -144
+      ],
+      "webhookId": "118a923a-7b95-4e5e-a5ea-f0907610c92d"
+    },
+    {
+      "parameters": {
+        "operation": "get",
+        "dataTableId": {
+          "__rl": true,
+          "value": "Stage 1 Students",
+          "mode": "name",
+          "cachedResultName": "Stage 1 Students"
+        },
+        "matchType": "allConditions",
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "id",
+              "condition": "eq",
+              "keyValue": "={{ $('Data Table - Create Student Record').item.json.id }}"
+            }
+          ]
+        },
+        "returnAll": false,
+        "limit": 1
+      },
+      "id": "data-table-check-stage-1-status",
+      "name": "Data Table - Check Stage 1 Status",
+      "type": "n8n-nodes-base.dataTable",
+      "typeVersion": 1.1,
+      "position": [
+        -2320,
+        -144
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 1
+          },
+          "conditions": [
+            {
+              "id": "cond-001",
+              "leftValue": "={{ $json.stage1_student_done }}",
+              "rightValue": true,
+              "operator": {
+                "type": "boolean",
+                "operation": "true"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "if-stage-1-student-done",
+      "name": "IF - Stage 1 Student Done?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        -2112,
+        -144
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "dataTableId": {
+          "__rl": true,
+          "value": "Stage 1 Students",
+          "mode": "name",
+          "cachedResultName": "Stage 1 Students"
+        },
+        "matchType": "allConditions",
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "id",
+              "condition": "eq",
+              "keyValue": "={{ $('Data Table - Create Student Record').item.json.id }}"
+            }
+          ]
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "status": "Stage 1 Complete",
+            "stage1_complete": true
+          },
+          "matchingColumns": [],
+          "schema": []
+        },
+        "options": {}
+      },
+      "id": "data-table-mark-stage-1-complete",
+      "name": "Data Table - Mark Stage 1 Complete",
+      "type": "n8n-nodes-base.dataTable",
+      "typeVersion": 1.1,
+      "position": [
+        -1888,
+        -240
+      ]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ { success: true, studentRecordId: $('Data Table - Create Student Record').item.json.id, ghlContactId: $('HTTP - Create GHL Contact').item.json.contact?.id || $('HTTP - Create GHL Contact').item.json.data?.contact?.id || $('HTTP - Create GHL Contact').item.json.id } }}",
+        "options": {}
+      },
+      "id": "respond-success",
+      "name": "Respond - Success",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [
+        -1664,
+        -144
+      ]
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Webhook - Affiliate Submit": {
+      "main": [
+        [
+          {
+            "node": "Set - Parse Input",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Set - Parse Input": {
+      "main": [
+        [
+          {
+            "node": "Data Table - Ensure Students Table",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Data Table - Ensure Students Table": {
+      "main": [
+        [
+          {
+            "node": "Data Table - Create Student Record",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Data Table - Create Student Record": {
+      "main": [
+        [
+          {
+            "node": "HTTP - Create GHL Contact",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP - Create GHL Contact": {
+      "main": [
+        [
+          {
+            "node": "Data Table - Update GHL Contact ID",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Data Table - Update GHL Contact ID": {
+      "main": [
+        [
+          {
+            "node": "Gmail - Send Student Invite",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Gmail - Send Student Invite": {
+      "main": [
+        [
+          {
+            "node": "Data Table - Check Stage 1 Status",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Data Table - Check Stage 1 Status": {
+      "main": [
+        [
+          {
+            "node": "IF - Stage 1 Student Done?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "IF - Stage 1 Student Done?": {
+      "main": [
+        [
+          {
+            "node": "Data Table - Mark Stage 1 Complete",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Respond - Success",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Data Table - Mark Stage 1 Complete": {
+      "main": [
+        [
+          {
+            "node": "Respond - Success",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "tags": []
+}
